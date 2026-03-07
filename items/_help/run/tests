@@ -1,0 +1,590 @@
+#!/usr/bin/env -S deno run --allow-all --no-lock
+import * as dax from "https://esm.sh/@jsr/david__dax@0.43.2/mod.ts" // see: https://github.com/dsherret/dax
+import { Console, green, red, cyan, yellow, magenta } from "https://deno.land/x/quickr@0.8.13/main/console.js"
+import { FileSystem } from "https://deno.land/x/quickr@0.8.13/main/file_system.js"
+import { getAllTestNames } from "../tools.js"
+
+const $ = dax.$
+const cachePath = `${FileSystem.thisFolder}/../test_cache.json`
+
+function printHelp() {
+  console.log(`Usage: run/tests [options] [marker1,marker2 ...]
+
+Options:
+  --help, -h        Show this help
+  --all             Enable all markers
+  --without <list>  Comma-separated markers to disable (applied after --all)
+  --explicit-tests <json>  JSON list of test paths to run exclusively
+  --resume          Resume from the last run (redo failures + unfinished)
+  --only-failed     Run only tests that failed in the last cache
+  --timeout-ms <n>  Kill a test process after n milliseconds (wall time)
+  --refresh-test-list  Rebuild cached test list
+
+Markers can be provided as comma-separated values or repeated args.`)
+}
+
+function unique(list) {
+  return [...new Set(list)]
+}
+
+function parseCliMarkers(args) {
+  const markers = []
+  for (const arg of args) {
+    for (const part of arg.split(",")) {
+      const trimmed = part.trim()
+      if (trimmed.length > 0) markers.push(trimmed)
+    }
+  }
+  return unique(markers)
+}
+
+function parseArgs(args) {
+  const markers = []
+  const without = []
+  let enableAll = false
+  let onlyFailed = false
+  let timeoutMs = null
+  let refreshTestList = false
+  let resume = false
+  let explicitTests = null
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i]
+    if (arg === "--help" || arg === "-h") {
+      printHelp()
+      Deno.exit(0)
+    }
+    if (arg === "--all") {
+      enableAll = true
+      continue
+    }
+    if (arg === "--only-failed") {
+      onlyFailed = true
+      continue
+    }
+    if (arg === "--refresh-test-list") {
+      refreshTestList = true
+      continue
+    }
+    if (arg === "--resume") {
+      resume = true
+      continue
+    }
+    if (arg === "--explicit-tests") {
+      const value = args[i + 1]
+      if (!value) {
+        console.error("Missing value for --explicit-tests")
+        Deno.exit(2)
+      }
+      explicitTests = value
+      i += 1
+      continue
+    }
+    if (arg.startsWith("--explicit-tests=")) {
+      explicitTests = arg.slice("--explicit-tests=".length)
+      continue
+    }
+    if (arg === "--timeout-ms") {
+      const value = args[i + 1]
+      if (!value) {
+        console.error("Missing value for --timeout-ms")
+        Deno.exit(2)
+      }
+      const parsed = Number.parseInt(value, 10)
+      if (!Number.isFinite(parsed) || parsed <= 0) {
+        console.error(`Invalid value for --timeout-ms: ${value}`)
+        Deno.exit(2)
+      }
+      timeoutMs = parsed
+      i += 1
+      continue
+    }
+    if (arg.startsWith("--timeout-ms=")) {
+      const value = arg.slice("--timeout-ms=".length)
+      const parsed = Number.parseInt(value, 10)
+      if (!Number.isFinite(parsed) || parsed <= 0) {
+        console.error(`Invalid value for --timeout-ms: ${value}`)
+        Deno.exit(2)
+      }
+      timeoutMs = parsed
+      continue
+    }
+    if (arg === "--without") {
+      const value = args[i + 1]
+      if (!value) {
+        console.error("Missing value for --without")
+        Deno.exit(2)
+      }
+      without.push(...parseCliMarkers([value]))
+      i += 1
+      continue
+    }
+    if (arg.startsWith("--without=")) {
+      without.push(...parseCliMarkers([arg.slice("--without=".length)]))
+      continue
+    }
+    markers.push(...parseCliMarkers([arg]))
+  }
+  return {
+    markers: unique(markers),
+    without: unique(without),
+    enableAll,
+    onlyFailed,
+    timeoutMs,
+    refreshTestList,
+    resume,
+    explicitTests,
+  }
+}
+
+function parseAvailableMarkers(output) {
+  const markers = []
+  const cleaned = output.replace(
+    // eslint-disable-next-line no-control-regex
+    /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g,
+    "",
+  )
+  const re = /^@pytest\.mark\.([A-Za-z0-9_]+):/gm
+  let match
+  while ((match = re.exec(cleaned)) !== null) {
+    markers.push(match[1])
+  }
+  return unique(markers)
+}
+
+async function saveCache(path, cache) {
+  const json = JSON.stringify(cache, null, 2)
+  await Deno.writeTextFile(path, json + "\n")
+}
+
+function getEffectiveMarkers(itemMarkers, availableMarkerSet) {
+  const filtered = []
+  for (const marker of itemMarkers) {
+    if (availableMarkerSet.has(marker)) filtered.push(marker)
+  }
+  return unique(filtered)
+}
+
+function normalizeTestPath(path) {
+  return path.replace(/^[.][/]+/, "")
+}
+
+function parseExplicitTests(value) {
+  if (!value) return null
+  let parsed
+  try {
+    parsed = JSON.parse(value)
+  } catch {
+    console.error("Invalid JSON for --explicit-tests")
+    Deno.exit(2)
+  }
+  if (!Array.isArray(parsed) || !parsed.every((item) => typeof item === "string")) {
+    console.error("Expected --explicit-tests to be a JSON array of strings")
+    Deno.exit(2)
+  }
+  return parsed.map(normalizeTestPath)
+}
+
+async function runSingleTest(pythonCmd, nodeid) {
+  const start = performance.now()
+  let code = 0
+  let output = ""
+  let stderrOutput = ""
+  const timeoutSeconds = timeoutMs ? Math.max(timeoutMs / 1000, 0.001) : null
+  let result
+  if (timeoutSeconds && timeoutCmd) {
+    result =
+      await $`${timeoutCmd} ${timeoutSeconds} ${pythonCmd} -m pytest -o ${"addopts=-v -p no:warnings -ra --color=yes"} -r s --maxfail=1 ${nodeid}`
+        .stdout("piped")
+        .stderr("piped")
+        .noThrow()
+  } else {
+    result =
+      await $`${pythonCmd} -m pytest -o ${"addopts=-v -p no:warnings -ra --color=yes"} -r s --maxfail=1 ${nodeid}`
+        .stdout("piped")
+        .stderr("piped")
+        .noThrow()
+  }
+  code = typeof result?.code === "number" ? result.code : 0
+  output = `${result?.stdout ?? ""}`
+  stderrOutput = `${result?.stderr ?? ""}`
+  const wallDurationSeconds = (performance.now() - start) / 1000
+  let durationSeconds = wallDurationSeconds
+  const durationMatch = [...output.matchAll(/\bin ([0-9.]+)s\b/g)].pop()
+  if (durationMatch && durationMatch[1]) {
+    const parsed = Number.parseFloat(durationMatch[1])
+    if (Number.isFinite(parsed)) {
+      durationSeconds = parsed
+    }
+  }
+  let status = "pass"
+  if (code !== 0) {
+    status = "fail"
+  } else if (/\bSKIPPED\b/i.test(output) || /\bskipped\b/i.test(output)) {
+    status = "skip"
+  }
+  return { code, durationSeconds, wallDurationSeconds, status, output, stderrOutput }
+}
+
+const venvPython = `${FileSystem.thisFolder}/../../.venv/bin/python`
+const pythonCmd = (await FileSystem.exists(venvPython)) ? venvPython : "python"
+
+async function findTimeoutCommand() {
+  try {
+    await $`command -v timeout`.quiet()
+    return "timeout"
+  } catch {
+    // ignore
+  }
+  try {
+    await $`command -v gtimeout`.quiet()
+    return "gtimeout"
+  } catch {
+    // ignore
+  }
+  return null
+}
+
+const markerOutput = await $`${pythonCmd} -m pytest --markers`.text()
+const availableMarkers = parseAvailableMarkers(markerOutput)
+const availableMarkerSet = new Set(availableMarkers)
+
+const markerLine = availableMarkers.length > 0 ? availableMarkers.join(", ") : "(none)"
+console.log(`Available markers: ${cyan(markerLine)}`)
+
+const {
+  markers: requestedMarkers,
+  without: withoutMarkers,
+  enableAll,
+  onlyFailed,
+  timeoutMs,
+  refreshTestList,
+  resume,
+  explicitTests,
+} = parseArgs(
+  Deno.args,
+)
+const explicitTestPaths = parseExplicitTests(explicitTests)
+const explicitNodeids = explicitTestPaths
+  ? new Set(explicitTestPaths.filter((value) => value.includes("::")))
+  : null
+const explicitFilePaths = explicitTestPaths
+  ? new Set(explicitTestPaths.filter((value) => !value.includes("::")))
+  : null
+const timeoutCmd = await findTimeoutCommand()
+if (timeoutMs && !timeoutCmd) {
+  console.error("Warning: --timeout-ms provided but no timeout/gtimeout command found; running without a timeout.")
+}
+const enabledMarkerSet = new Set(requestedMarkers)
+if (enableAll) {
+  for (const marker of availableMarkers) enabledMarkerSet.add(marker)
+}
+for (const marker of withoutMarkers) enabledMarkerSet.delete(marker)
+const enabledMarkers = [...enabledMarkerSet]
+console.log("")
+console.log(`Enabled markers: ${enabledMarkers.length > 0 ? enabledMarkers.join(", ") : "(none)"}`)
+if (withoutMarkers.length > 0) {
+  console.log(`Disabled markers: ${withoutMarkers.join(", ")}`)
+}
+if (onlyFailed) {
+  console.log("Only failed tests: enabled")
+}
+console.log("")
+
+const testNameResult = await getAllTestNames(!refreshTestList)
+let items = testNameResult.items
+const { cache, retcode, output, usedCache } = testNameResult
+if (retcode !== 0) {
+  if (output && output.trim().length > 0) {
+    const trimmed = output.trim()
+    const maxChars = 8000
+    const sliced = trimmed.length > maxChars ? trimmed.slice(trimmed.length - maxChars) : trimmed
+    console.error(sliced)
+  }
+  if (!items || items.length === 0) {
+    console.error("Test collection failed.")
+    Deno.exit(retcode)
+  }
+  console.error("Test collection had errors; continuing with collected tests.")
+}
+
+if (explicitTestPaths && explicitTestPaths.length > 0) {
+  items = items.filter((item) => {
+    const nodeid = item.nodeid
+    if (explicitNodeids && explicitNodeids.has(nodeid)) return true
+    if (explicitFilePaths && explicitFilePaths.size > 0) {
+      return explicitFilePaths.has(normalizeTestPath(nodeid.split("::")[0]))
+    }
+    return false
+  })
+  if (items.length === 0) {
+    console.error("No tests matched --explicit-tests list")
+    Deno.exit(2)
+  }
+}
+
+const selectedTests = []
+for (const item of items) {
+  const effectiveMarkers = getEffectiveMarkers(item.markers || [], availableMarkerSet)
+  const hasMarkers = effectiveMarkers.length > 0
+  const enabledByMarkers = effectiveMarkers.some((marker) => enabledMarkerSet.has(marker))
+  if (!hasMarkers || enabledByMarkers) {
+    selectedTests.push({ nodeid: item.nodeid, markers: effectiveMarkers })
+  }
+}
+
+console.log("")
+console.log(`Selected ${cyan(selectedTests.length)} tests.`)
+
+let filteredTests = selectedTests
+if (onlyFailed) {
+  filteredTests = selectedTests.filter((test) => cache.tests[test.nodeid]?.status === "fail")
+  console.log(`Only-failed selection: ${filteredTests.length} tests.`)
+}
+
+const unknown = []
+const known = []
+for (const test of filteredTests) {
+  const cached = cache.tests[test.nodeid]
+  const lastSuccessWall = cached?.last_success_wall_duration
+  const wallDuration = cached?.wall_duration_seconds
+  const lastSuccessDuration = cached?.last_success_duration
+  if (typeof lastSuccessWall === "number" && Number.isFinite(lastSuccessWall)) {
+    known.push({ ...test, durationSeconds: lastSuccessWall })
+  } else if (typeof wallDuration === "number" && Number.isFinite(wallDuration)) {
+    known.push({ ...test, durationSeconds: wallDuration })
+  } else if (typeof lastSuccessDuration === "number" && Number.isFinite(lastSuccessDuration)) {
+    known.push({ ...test, durationSeconds: lastSuccessDuration })
+  } else if (cached && typeof cached.duration_seconds === "number" && Number.isFinite(cached.duration_seconds)) {
+    known.push({ ...test, durationSeconds: cached.duration_seconds })
+  } else {
+    unknown.push(test)
+  }
+}
+
+known.sort((a, b) => a.durationSeconds - b.durationSeconds)
+const runQueue = [...unknown, ...known]
+const runQueueSet = new Set(runQueue.map((test) => test.nodeid))
+const previousLastRun = cache.last_run
+const failedTests = []
+const failedTestOutputs = {} // Store output for failed tests
+let lastLineLength = 0
+const ansiRegex = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g
+function visibleLength(text) {
+  return String(text).replace(ansiRegex, "").length
+}
+function writeStatusLine(line, finalize = false) {
+  const padLength = Math.max(0, lastLineLength - visibleLength(line))
+  const padded = `${line}${" ".repeat(padLength)}`
+  lastLineLength = visibleLength(padded)
+  Console.write(finalize ? `${padded}\n` : `${padded}\r`)
+}
+const knownDurations = runQueue
+  .map((test) => test.durationSeconds)
+  .filter((value) => typeof value === "number" && Number.isFinite(value))
+  .sort((a, b) => a - b)
+const medianDurationSeconds =
+  knownDurations.length === 0
+    ? 0
+    : knownDurations.length % 2 === 1
+      ? knownDurations[(knownDurations.length - 1) / 2]
+      : (knownDurations[knownDurations.length / 2 - 1] + knownDurations[knownDurations.length / 2]) / 2
+
+let resumeQueue = runQueue
+if (resume && previousLastRun?.queue && Array.isArray(previousLastRun.queue)) {
+  const lastQueue = previousLastRun.queue
+  const startIndex = typeof previousLastRun.index === "number" ? previousLastRun.index : 0
+  const failed = runQueue
+    .filter((test) => cache.tests[test.nodeid]?.status === "fail")
+    .map((test) => test.nodeid)
+  const pending = lastQueue.slice(Math.max(0, startIndex))
+  const resumeSet = new Set([...failed, ...pending])
+  resumeQueue = runQueue.filter((test) => resumeSet.has(test.nodeid))
+}
+
+cache.last_run = {
+  queue: resumeQueue.map((test) => test.nodeid),
+  index: 0,
+  updated_at: new Date().toISOString(),
+}
+await saveCache(cachePath, cache)
+
+const explicitSet = explicitTestPaths ? new Set(explicitTestPaths) : null
+let refreshInFlight = false
+let refreshPromise = null
+function refreshTestListAsync() {
+  if (refreshInFlight || resume) return
+  refreshInFlight = true
+  refreshPromise = (async () => {
+    try {
+      const refresh = await getAllTestNames(false)
+      const refreshedItems = refresh.items || []
+      for (const item of refreshedItems) {
+        if (!item || !item.nodeid) continue
+        if (runQueueSet.has(item.nodeid)) continue
+        if (explicitSet && !explicitSet.has(normalizeTestPath(item.nodeid.split("::")[0]))) continue
+        const effectiveMarkers = getEffectiveMarkers(item.markers || [], availableMarkerSet)
+        const hasMarkers = effectiveMarkers.length > 0
+        const enabledByMarkers = effectiveMarkers.some((marker) => enabledMarkerSet.has(marker))
+        if (hasMarkers && !enabledByMarkers) continue
+        if (onlyFailed && cache.tests[item.nodeid]?.status !== "fail") continue
+        const newItem = { nodeid: item.nodeid, markers: effectiveMarkers }
+        resumeQueue.push(newItem)
+        runQueueSet.add(item.nodeid)
+      }
+    } finally {
+      refreshInFlight = false
+    }
+  })()
+  return refreshPromise
+}
+
+let backgroundRefreshStarted = false
+let index = 0
+while (index < resumeQueue.length) {
+  const test = resumeQueue[index]
+  if (!backgroundRefreshStarted) {
+    backgroundRefreshStarted = true
+    refreshTestListAsync()
+  }
+  const remainingSeconds = resumeQueue
+    .slice(index + 1)
+    .reduce(
+      (total, item) => total + (typeof item.durationSeconds === "number" ? item.durationSeconds : medianDurationSeconds),
+      0,
+    )
+  const remainingMinutes = remainingSeconds / 60
+  const progressLabel = `${index + 1}/${resumeQueue.length}`
+  const etaLabel = `${remainingMinutes.toFixed(1)}m`
+  const [ name, ...rest ] = test.nodeid.split('::')
+  writeStatusLine(`Running ${cyan(progressLabel)} (eta ${yellow(etaLabel)}): ${magenta(name)}::${rest.join("::")}...`)
+  const { code, durationSeconds, wallDurationSeconds, status, output, stderrOutput } = await runSingleTest(
+    pythonCmd,
+    test.nodeid,
+  )
+  const durationSecondsFixed = Number(durationSeconds.toFixed(3))
+  const wallDurationSecondsFixed = Number(wallDurationSeconds.toFixed(3))
+  cache.tests[test.nodeid] = {
+    duration_seconds: durationSecondsFixed,
+    wall_duration_seconds: wallDurationSecondsFixed,
+    status,
+    last_run: new Date().toISOString(),
+    last_success_duration:
+      status === "pass" ? durationSecondsFixed : cache.tests[test.nodeid]?.last_success_duration,
+    last_success_wall_duration:
+      status === "pass" ? wallDurationSecondsFixed : cache.tests[test.nodeid]?.last_success_wall_duration,
+    markers: test.markers,
+  }
+  const fileKey = test.nodeid.split("::")[0]
+  cache.files = cache.files || {}
+  cache.files[fileKey] = {
+    duration_seconds: durationSecondsFixed,
+    wall_duration_seconds: wallDurationSecondsFixed,
+    status,
+    last_run: new Date().toISOString(),
+    last_success_duration:
+      status === "pass" ? durationSecondsFixed : cache.files[fileKey]?.last_success_duration,
+    last_success_wall_duration:
+      status === "pass" ? wallDurationSecondsFixed : cache.files[fileKey]?.last_success_wall_duration,
+  }
+  await saveCache(cachePath, cache)
+  cache.last_run = {
+    queue: resumeQueue.map((item) => item.nodeid),
+    index: index + 1,
+    updated_at: new Date().toISOString(),
+  }
+  await saveCache(cachePath, cache)
+  const statusLabel =
+    status === "pass" ? `${green("✓")}` : status === "skip" ? yellow("-") : `${red("✗")}`
+  const line = `${cyan(progressLabel)} (eta ${yellow(etaLabel)}) ${test.nodeid} [${cyan(durationSecondsFixed)}s ${statusLabel}]`
+  if (status === "fail") {
+    writeStatusLine(red(line), true)
+    const combined = `${output ?? ""}${stderrOutput ?? ""}`
+    failedTests.push(test.nodeid)
+    failedTestOutputs[test.nodeid] = combined
+  } else {
+    writeStatusLine(
+      status === "pass" ? green(line) : status === "skip" ? yellow(line) : red(line),
+    )
+  }
+  index += 1
+  if (index >= resumeQueue.length && refreshPromise) {
+    await refreshPromise
+    refreshPromise = null
+  }
+}
+
+async function getFailedTestLocations(nodeids) {
+  const locations = []
+  for (const nodeid of nodeids) {
+    const [filePart, rest] = nodeid.split("::", 2)
+    if (!filePart || !rest) {
+      locations.push(nodeid)
+      continue
+    }
+    const filePath = filePart
+    const functionName = rest.includes("::") ? rest.split("::").pop() : rest
+    try {
+      const content = await Deno.readTextFile(filePath)
+      const lines = content.split("\n")
+      let found = false
+      for (let i = 0; i < lines.length; i += 1) {
+        const line = lines[i]
+        if (line.includes(`def ${functionName}`)) {
+          locations.push(`${filePath}:${i + 1}`)
+          found = true
+          break
+        }
+      }
+      if (!found) {
+        locations.push(`${filePath}:?`)
+      }
+    } catch {
+      locations.push(`${filePath}:?`)
+    }
+  }
+  return locations
+}
+
+const cachedFailures = Object.entries(cache.tests).filter(([, entry]) => entry.status === "fail").length
+const currentRunFailures = failedTests.length
+console.log("")
+if (currentRunFailures > 0) {
+  console.log(`Completed with ${red(currentRunFailures)} failing test(s) in this run. ${red("✗")}`)
+  console.log("")
+  console.log(red("=" .repeat(80)))
+  console.log(red("FAILED TEST OUTPUT:"))
+  console.log(red("=" .repeat(80)))
+
+  for (const nodeid of failedTests) {
+    console.log("")
+    console.log(red(`${"─".repeat(80)}`))
+    console.log(red(`FAILED: ${nodeid}`))
+    console.log(red(`${"─".repeat(80)}`))
+    const output = failedTestOutputs[nodeid] || ""
+    if (output.trim().length > 0) {
+      console.log(output)
+    } else {
+      console.log(yellow("(No output captured)"))
+    }
+  }
+
+  console.log("")
+  console.log(red("=" .repeat(80)))
+  const locations = await getFailedTestLocations(failedTests)
+  console.log(`${red("Failed test locations:")}`)
+  for (const location of locations) {
+    console.log(red(location))
+  }
+  console.log(red("=" .repeat(80)))
+
+  if (cachedFailures > currentRunFailures) {
+    console.log(`${yellow(`(${cachedFailures - currentRunFailures} other tests failed in previous runs)`)}`)
+  }
+  Deno.exit(1)
+} else if (cachedFailures > 0) {
+  console.log(`Completed with ${green("0")} failing tests in this run! ${green("✓")}`)
+  console.log(`${yellow(`(But ${cachedFailures} tests failed in previous runs - run with --only-failed to retry them)`)}`)
+  Deno.exit(0)
+} else {
+  console.log(`Completed with ${green("0")} failing tests! ${green("✓")}`)
+}

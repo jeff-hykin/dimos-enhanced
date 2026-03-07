@@ -1,0 +1,1 @@
+uv pip install "dimos[base,dev,manipulation,misc,unitree,drone] @ git+https://github.com/dimensionalOS/dimos.git@dev"

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+. .venv/bin/activate
+
+skip_string="tool or module or neverending or mujoco or tofix or ros"
+# on macOS skip GPU
+if [ "$(uname)" = "Darwin" ]; then
+    skip_string="$skip_string or gpu"
+fi
+exec pytest "$@" -m "not ($skip_string)" dimos

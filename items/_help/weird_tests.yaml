@@ -1,0 +1,3 @@
+flakey:
+- dimos/protocol/rpc/test_spec.py::test_exception_handling_callback
+

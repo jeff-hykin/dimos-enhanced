@@ -1,0 +1,1996 @@
+{
+  "tests": {
+    "dimos/robot/test_all_blueprints_generation.py::test_all_blueprints_is_current": {
+      "status": "pass",
+      "wall_duration_seconds": 2.7250046250000013,
+      "last_run": "2026-02-26T17:27:33.763Z",
+      "last_success_wall_duration": 2.7250046250000013,
+      "markers": []
+    },
+    "dimos/control/test_control.py::TestJointCommandOutput::test_position_output": {
+      "status": "pass",
+      "wall_duration_seconds": 13.835802708000003,
+      "last_run": "2026-02-26T17:31:38.569Z",
+      "last_success_wall_duration": 13.835802708000003,
+      "markers": []
+    },
+    "dimos/control/test_control.py::TestJointCommandOutput::test_velocity_output": {
+      "status": "pass",
+      "wall_duration_seconds": 12.681862416999996,
+      "last_run": "2026-02-26T17:34:24.008Z",
+      "last_success_wall_duration": 12.681862416999996,
+      "markers": []
+    },
+    "dimos/control/test_control.py::TestJointCommandOutput::test_torque_output": {
+      "status": "pass",
+      "wall_duration_seconds": 14.380129083000007,
+      "last_run": "2026-02-26T17:32:07.150Z",
+      "last_success_wall_duration": 14.380129083000007,
+      "markers": []
+    },
+    "dimos/control/test_control.py::TestJointCommandOutput::test_no_values_returns_none": {
+      "status": "pass",
+      "wall_duration_seconds": 13.693614625000016,
+      "last_run": "2026-02-26T17:30:03.563Z",
+      "last_success_wall_duration": 13.693614625000016,
+      "markers": []
+    },
+    "dimos/control/test_control.py::TestJointStateSnapshot::test_get_position": {
+      "status": "pass",
+      "wall_duration_seconds": 12.77423887499998,
+      "last_run": "2026-02-26T17:34:11.325Z",
+      "last_success_wall_duration": 12.77423887499998,
+      "markers": []
+    },
+    "dimos/control/test_control.py::TestConnectedHardware::test_joint_names_prefixed": {
+      "status": "pass",
+      "wall_duration_seconds": 13.105486458000028,
+      "last_run": "2026-02-26T17:33:45.854Z",
+      "last_success_wall_duration": 13.105486458000028,
+      "markers": []
+    },
+    "dimos/control/test_control.py::TestConnectedHardware::test_read_state": {
+      "status": "pass",
+      "wall_duration_seconds": 13.514566500000015,
+      "last_run": "2026-02-26T17:35:17.463Z",
+      "last_success_wall_duration": 13.514566500000015,
+      "markers": []
+    },
+    "dimos/control/test_control.py::TestConnectedHardware::test_write_command": {
+      "status": "pass",
+      "wall_duration_seconds": 12.612241916999977,
+      "last_run": "2026-02-26T17:34:49.296Z",
+      "last_success_wall_duration": 12.612241916999977,
+      "markers": []
+    },
+    "dimos/control/test_control.py::TestJointTrajectoryTask::test_initial_state": {
+      "status": "pass",
+      "wall_duration_seconds": 12.502701750000007,
+      "last_run": "2026-02-26T17:31:17.371Z",
+      "last_success_wall_duration": 12.502701750000007,
+      "markers": []
+    },
+    "dimos/control/test_control.py::TestJointTrajectoryTask::test_claim": {
+      "status": "pass",
+      "wall_duration_seconds": 12.69669070799998,
+      "last_run": "2026-02-26T17:33:58.551Z",
+      "last_success_wall_duration": 12.69669070799998,
+      "markers": []
+    },
+    "dimos/control/test_control.py::TestJointTrajectoryTask::test_execute_trajectory": {
+      "status": "pass",
+      "wall_duration_seconds": 13.451824000000022,
+      "last_run": "2026-02-26T17:30:58.106Z",
+      "last_success_wall_duration": 13.451824000000022,
+      "markers": []
+    },
+    "dimos/control/test_control.py::TestJointTrajectoryTask::test_compute_during_trajectory": {
+      "status": "pass",
+      "wall_duration_seconds": 14.437798165999993,
+      "last_run": "2026-02-26T17:30:44.654Z",
+      "last_success_wall_duration": 14.437798165999993,
+      "markers": []
+    },
+    "dimos/control/test_control.py::TestJointTrajectoryTask::test_trajectory_completes": {
+      "status": "pass",
+      "wall_duration_seconds": 14.228840541999961,
+      "last_run": "2026-02-26T17:33:18.514Z",
+      "last_success_wall_duration": 14.228840541999961,
+      "markers": []
+    },
+    "dimos/control/test_control.py::TestJointTrajectoryTask::test_cancel_trajectory": {
+      "status": "pass",
+      "wall_duration_seconds": 14.245144291000033,
+      "last_run": "2026-02-26T17:32:35.674Z",
+      "last_success_wall_duration": 14.245144291000033,
+      "markers": []
+    },
+    "dimos/control/test_control.py::TestJointTrajectoryTask::test_preemption": {
+      "status": "pass",
+      "wall_duration_seconds": 13.816584332999977,
+      "last_run": "2026-02-26T17:30:17.380Z",
+      "last_success_wall_duration": 13.816584332999977,
+      "markers": []
+    },
+    "dimos/control/test_control.py::TestJointTrajectoryTask::test_progress": {
+      "status": "pass",
+      "wall_duration_seconds": 14.26955345800001,
+      "last_run": "2026-02-26T17:32:49.945Z",
+      "last_success_wall_duration": 14.26955345800001,
+      "markers": []
+    },
+    "dimos/control/test_control.py::TestArbitration::test_single_task_wins": {
+      "status": "pass",
+      "wall_duration_seconds": 12.675179000000004,
+      "last_run": "2026-02-26T17:34:36.683Z",
+      "last_success_wall_duration": 12.675179000000004,
+      "markers": []
+    },
+    "dimos/control/test_control.py::TestArbitration::test_higher_priority_wins": {
+      "status": "pass",
+      "wall_duration_seconds": 14.233326916000049,
+      "last_run": "2026-02-26T17:33:32.748Z",
+      "last_success_wall_duration": 14.233326916000049,
+      "markers": []
+    },
+    "dimos/control/test_control.py::TestArbitration::test_non_overlapping_joints": {
+      "status": "pass",
+      "wall_duration_seconds": 14.278359875000024,
+      "last_run": "2026-02-26T17:32:21.429Z",
+      "last_success_wall_duration": 14.278359875000024,
+      "markers": []
+    },
+    "dimos/control/test_control.py::TestTickLoop::test_tick_loop_starts_and_stops": {
+      "status": "pass",
+      "wall_duration_seconds": 14.339466167000007,
+      "last_run": "2026-02-26T17:33:04.284Z",
+      "last_success_wall_duration": 14.339466167000007,
+      "markers": []
+    },
+    "dimos/control/test_control.py::TestTickLoop::test_tick_loop_calls_compute": {
+      "status": "pass",
+      "wall_duration_seconds": 14.200007125000004,
+      "last_run": "2026-02-26T17:31:52.769Z",
+      "last_success_wall_duration": 14.200007125000004,
+      "markers": []
+    },
+    "dimos/control/test_control.py::TestIntegration::test_full_trajectory_execution": {
+      "status": "pass",
+      "wall_duration_seconds": 14.651597165999993,
+      "last_run": "2026-02-26T17:35:03.948Z",
+      "last_success_wall_duration": 14.651597165999993,
+      "markers": []
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[arm-teleop]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.844309708000001,
+      "last_run": "2026-02-26T17:27:53.326Z",
+      "last_success_wall_duration": 6.844309708000001,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[arm-teleop-dual]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.722935874999996,
+      "last_run": "2026-02-26T17:28:56.176Z",
+      "last_success_wall_duration": 6.722935874999996,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[arm-teleop-piper]": {
+      "status": "pass",
+      "wall_duration_seconds": 7.00691416700001,
+      "last_run": "2026-02-26T17:28:00.334Z",
+      "last_success_wall_duration": 7.00691416700001,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[arm-teleop-visualizing]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.373700249999994,
+      "last_run": "2026-02-26T17:29:29.749Z",
+      "last_success_wall_duration": 6.373700249999994,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[arm-teleop-xarm6]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.7281876249999915,
+      "last_run": "2026-02-26T17:28:42.132Z",
+      "last_success_wall_duration": 6.7281876249999915,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[coordinator-basic]": {
+      "status": "pass",
+      "wall_duration_seconds": 7.074919332999998,
+      "last_run": "2026-02-26T17:28:21.088Z",
+      "last_success_wall_duration": 7.074919332999998,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[coordinator-cartesian-ik-mock]": {
+      "status": "pass",
+      "wall_duration_seconds": 7.145940708000009,
+      "last_run": "2026-02-26T17:29:03.323Z",
+      "last_success_wall_duration": 7.145940708000009,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[coordinator-cartesian-ik-piper]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.63996100000001,
+      "last_run": "2026-02-26T17:30:24.021Z",
+      "last_success_wall_duration": 6.63996100000001,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[coordinator-combined-xarm6]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.635422749999998,
+      "last_run": "2026-02-26T17:29:23.375Z",
+      "last_success_wall_duration": 6.635422749999998,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[coordinator-dual-mock]": {
+      "status": "pass",
+      "wall_duration_seconds": 7.319524416999993,
+      "last_run": "2026-02-26T17:28:49.453Z",
+      "last_success_wall_duration": 7.319524416999993,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[coordinator-dual-xarm]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.458192833000008,
+      "last_run": "2026-02-26T17:29:49.869Z",
+      "last_success_wall_duration": 6.458192833000008,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[coordinator-mock]": {
+      "status": "pass",
+      "wall_duration_seconds": 7.075790791999985,
+      "last_run": "2026-02-26T17:29:43.411Z",
+      "last_success_wall_duration": 7.075790791999985,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[coordinator-piper]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.947527749999994,
+      "last_run": "2026-02-26T17:28:14.012Z",
+      "last_success_wall_duration": 6.947527749999994,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[coordinator-piper-xarm]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.585091917000012,
+      "last_run": "2026-02-26T17:29:36.335Z",
+      "last_success_wall_duration": 6.585091917000012,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[coordinator-teleop-dual]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.194110792000021,
+      "last_run": "2026-02-26T17:30:30.215Z",
+      "last_success_wall_duration": 6.194110792000021,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[coordinator-teleop-piper]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.729359041999996,
+      "last_run": "2026-02-26T17:28:07.064Z",
+      "last_success_wall_duration": 6.729359041999996,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[coordinator-teleop-xarm6]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.761608542000002,
+      "last_run": "2026-02-26T17:31:04.868Z",
+      "last_success_wall_duration": 6.761608542000002,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[coordinator-velocity-xarm6]": {
+      "status": "pass",
+      "wall_duration_seconds": 7.205473083000005,
+      "last_run": "2026-02-26T17:28:35.403Z",
+      "last_success_wall_duration": 7.205473083000005,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[coordinator-xarm6]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.8649860000000045,
+      "last_run": "2026-02-26T17:29:10.188Z",
+      "last_success_wall_duration": 6.8649860000000045,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[coordinator-xarm7]": {
+      "status": "pass",
+      "wall_duration_seconds": 7.108319042000002,
+      "last_run": "2026-02-26T17:28:28.197Z",
+      "last_success_wall_duration": 7.108319042000002,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[demo-camera]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.492840792000003,
+      "last_run": "2026-02-26T17:27:46.481Z",
+      "last_success_wall_duration": 6.492840792000003,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[demo-error-on-name-conflicts]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.224336624999996,
+      "last_run": "2026-02-26T17:27:39.988Z",
+      "last_success_wall_duration": 6.224336624999996,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[demo-google-maps-skill]": {
+      "status": "pass",
+      "wall_duration_seconds": 7.361063875000051,
+      "last_run": "2026-02-26T17:31:24.733Z",
+      "last_success_wall_duration": 7.361063875000051,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[demo-gps-nav]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.550681958000001,
+      "last_run": "2026-02-26T17:29:16.739Z",
+      "last_success_wall_duration": 6.550681958000001,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[demo-grasping]": {
+      "status": "pass",
+      "wall_duration_seconds": 10.31345520799997,
+      "last_run": "2026-02-26T17:35:27.777Z",
+      "last_success_wall_duration": 10.31345520799997,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/perception/experimental/temporal_memory/test_temporal_memory_module.py::TestTemporalMemoryModule::test_temporal_memory_module_with_replay": {
+      "status": "fail",
+      "wall_duration_seconds": 12.839527416999976,
+      "last_run": "2026-02-22T21:36:55.968Z",
+      "markers": [
+        "asyncio",
+        "neverending",
+        "skipif"
+      ]
+    },
+    "dimos/perception/test_spatial_memory.py::TestSpatialMemory::test_spatial_memory_initialization": {
+      "status": "pass",
+      "wall_duration_seconds": 15.35961837500002,
+      "last_run": "2026-02-22T21:37:11.335Z",
+      "last_success_wall_duration": 15.35961837500002,
+      "markers": [
+        "heavy"
+      ]
+    },
+    "dimos/perception/test_spatial_memory.py::TestSpatialMemory::test_image_embedding": {
+      "status": "pass",
+      "wall_duration_seconds": 16.32221145799995,
+      "last_run": "2026-02-22T21:37:27.659Z",
+      "last_success_wall_duration": 16.32221145799995,
+      "markers": [
+        "heavy"
+      ]
+    },
+    "dimos/perception/test_spatial_memory.py::TestSpatialMemory::test_spatial_memory_processing": {
+      "status": "pass",
+      "wall_duration_seconds": 33.332410875,
+      "last_run": "2026-02-22T21:38:00.994Z",
+      "last_success_wall_duration": 33.332410875,
+      "markers": [
+        "heavy"
+      ]
+    },
+    "dimos/perception/test_spatial_memory_module.py::TestSpatialMemoryModule::test_spatial_memory_module_with_replay": {
+      "status": "fail",
+      "wall_duration_seconds": 9.562907542000001,
+      "last_run": "2026-02-22T21:38:10.558Z",
+      "markers": [
+        "asyncio",
+        "gpu",
+        "neverending"
+      ]
+    },
+    "dimos/robot/drone/test_drone.py::TestMavlinkProcessing::test_mavlink_message_processing": {
+      "status": "pass",
+      "wall_duration_seconds": 10.603334499999997,
+      "last_run": "2026-02-26T17:35:59.538Z",
+      "last_success_wall_duration": 10.603334499999997,
+      "markers": []
+    },
+    "dimos/robot/drone/test_drone.py::TestMavlinkProcessing::test_ned_to_ros_coordinate_conversion": {
+      "status": "pass",
+      "wall_duration_seconds": 10.614541417,
+      "last_run": "2026-02-26T17:35:48.934Z",
+      "last_success_wall_duration": 10.614541417,
+      "markers": []
+    },
+    "dimos/robot/drone/test_drone.py::TestMavlinkProcessing::test_position_integration": {
+      "status": "pass",
+      "wall_duration_seconds": 10.454639791999943,
+      "last_run": "2026-02-26T17:36:09.993Z",
+      "last_success_wall_duration": 10.454639791999943,
+      "markers": []
+    },
+    "dimos/robot/drone/test_drone.py::TestReplayMode::test_connection_module_replay_mode": {
+      "status": "pass",
+      "wall_duration_seconds": 10.901295500000007,
+      "last_run": "2026-02-26T17:36:31.373Z",
+      "last_success_wall_duration": 10.901295500000007,
+      "markers": []
+    },
+    "dimos/robot/drone/test_drone.py::TestReplayMode::test_connection_module_replay_with_messages": {
+      "status": "pass",
+      "wall_duration_seconds": 10.529376832999988,
+      "last_run": "2026-02-26T17:36:41.903Z",
+      "last_success_wall_duration": 10.529376832999988,
+      "markers": []
+    },
+    "dimos/robot/drone/test_drone.py::TestReplayMode::test_fake_mavlink_connection": {
+      "status": "pass",
+      "wall_duration_seconds": 10.541538291999954,
+      "last_run": "2026-02-26T17:35:38.319Z",
+      "last_success_wall_duration": 10.541538291999954,
+      "markers": []
+    },
+    "dimos/robot/drone/test_drone.py::TestReplayMode::test_fake_video_stream_no_throttling": {
+      "status": "pass",
+      "wall_duration_seconds": 10.478385542000062,
+      "last_run": "2026-02-26T17:36:20.471Z",
+      "last_success_wall_duration": 10.478385542000062,
+      "markers": []
+    },
+    "dimos/robot/drone/test_drone.py::TestDroneFullIntegration::test_full_system_with_replay": {
+      "status": "pass",
+      "wall_duration_seconds": 10.733703291999998,
+      "last_run": "2026-02-26T17:27:31.032Z",
+      "last_success_wall_duration": 10.733703291999998,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_encoder.py::test_json_encoded_pubsub": {
+      "status": "pass",
+      "wall_duration_seconds": 5.197785083999974,
+      "last_run": "2026-02-26T17:36:47.101Z",
+      "last_success_wall_duration": 5.197785083999974,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_encoder.py::test_json_encoding_edge_cases": {
+      "status": "pass",
+      "wall_duration_seconds": 5.957237749999971,
+      "last_run": "2026-02-26T17:36:53.059Z",
+      "last_success_wall_duration": 5.957237749999971,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_encoder.py::test_multiple_subscribers_with_encoding": {
+      "status": "pass",
+      "wall_duration_seconds": 4.964470582999987,
+      "last_run": "2026-02-26T17:36:58.024Z",
+      "last_success_wall_duration": 4.964470582999987,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_encoder.py::test_data_actually_encoded_in_transit": {
+      "status": "pass",
+      "wall_duration_seconds": 4.772240749999997,
+      "last_run": "2026-02-26T17:37:02.797Z",
+      "last_success_wall_duration": 4.772240749999997,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_pattern_sub.py::test_subscribe_all_receives_all_topics[lcm_typed]": {
+      "status": "pass",
+      "wall_duration_seconds": 5.08682108299993,
+      "last_run": "2026-02-26T17:37:07.884Z",
+      "last_success_wall_duration": 5.08682108299993,
+      "markers": [
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_pattern_sub.py::test_subscribe_all_receives_all_topics[lcm_bytes]": {
+      "status": "pass",
+      "wall_duration_seconds": 4.938243875000044,
+      "last_run": "2026-02-26T17:37:12.823Z",
+      "last_success_wall_duration": 4.938243875000044,
+      "markers": [
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_pattern_sub.py::test_subscribe_all_unsubscribe[lcm_typed]": {
+      "status": "pass",
+      "wall_duration_seconds": 4.955022708000033,
+      "last_run": "2026-02-26T17:37:17.778Z",
+      "last_success_wall_duration": 4.955022708000033,
+      "markers": [
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_pattern_sub.py::test_subscribe_all_unsubscribe[lcm_bytes]": {
+      "status": "pass",
+      "wall_duration_seconds": 5.232884833000019,
+      "last_run": "2026-02-26T17:37:23.012Z",
+      "last_success_wall_duration": 5.232884833000019,
+      "markers": [
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_pattern_sub.py::test_subscribe_all_with_regular_subscribe[lcm_typed]": {
+      "status": "pass",
+      "wall_duration_seconds": 4.989987375000026,
+      "last_run": "2026-02-26T17:37:28.002Z",
+      "last_success_wall_duration": 4.989987375000026,
+      "markers": [
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_pattern_sub.py::test_subscribe_all_with_regular_subscribe[lcm_bytes]": {
+      "status": "pass",
+      "wall_duration_seconds": 4.9410696250000035,
+      "last_run": "2026-02-26T17:37:32.944Z",
+      "last_success_wall_duration": 4.9410696250000035,
+      "markers": [
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_pattern_sub.py::test_subscribe_glob[lcm_typed]": {
+      "status": "pass",
+      "wall_duration_seconds": 5.36882354100002,
+      "last_run": "2026-02-26T17:37:38.313Z",
+      "last_success_wall_duration": 5.36882354100002,
+      "markers": [
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_pattern_sub.py::test_subscribe_glob[lcm_bytes]": {
+      "status": "pass",
+      "wall_duration_seconds": 5.311516167000052,
+      "last_run": "2026-02-26T17:37:43.625Z",
+      "last_success_wall_duration": 5.311516167000052,
+      "markers": [
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_pattern_sub.py::test_subscribe_regex[lcm_typed]": {
+      "status": "pass",
+      "wall_duration_seconds": 5.512038708999986,
+      "last_run": "2026-02-26T17:37:49.138Z",
+      "last_success_wall_duration": 5.512038708999986,
+      "markers": [
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_pattern_sub.py::test_subscribe_regex[lcm_bytes]": {
+      "status": "pass",
+      "wall_duration_seconds": 5.64609375,
+      "last_run": "2026-02-26T17:37:54.784Z",
+      "last_success_wall_duration": 5.64609375,
+      "markers": [
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_patterns.py::TestPatternMatchesString::test_exact_match": {
+      "status": "pass",
+      "wall_duration_seconds": 4.517537874999922,
+      "last_run": "2026-02-26T17:37:59.304Z",
+      "last_success_wall_duration": 4.517537874999922,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_patterns.py::TestPatternMatchesString::test_no_match": {
+      "status": "pass",
+      "wall_duration_seconds": 4.42039391600003,
+      "last_run": "2026-02-26T17:38:03.724Z",
+      "last_success_wall_duration": 4.42039391600003,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_patterns.py::TestPatternMatchesString::test_empty_string": {
+      "status": "pass",
+      "wall_duration_seconds": 4.3869897089999865,
+      "last_run": "2026-02-26T17:38:08.112Z",
+      "last_success_wall_duration": 4.3869897089999865,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_patterns.py::TestPatternMatchesString::test_partial_match_fails": {
+      "status": "pass",
+      "wall_duration_seconds": 4.409669958000071,
+      "last_run": "2026-02-26T17:38:12.523Z",
+      "last_success_wall_duration": 4.409669958000071,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_patterns.py::TestPatternMatchesGlob::test_single_wildcard": {
+      "status": "pass",
+      "wall_duration_seconds": 4.386646334000048,
+      "last_run": "2026-02-26T17:38:16.910Z",
+      "last_success_wall_duration": 4.386646334000048,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_patterns.py::TestPatternMatchesGlob::test_single_wildcard_no_slash": {
+      "status": "pass",
+      "wall_duration_seconds": 4.42674558300001,
+      "last_run": "2026-02-26T17:38:21.337Z",
+      "last_success_wall_duration": 4.42674558300001,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_patterns.py::TestPatternMatchesGlob::test_double_wildcard": {
+      "status": "pass",
+      "wall_duration_seconds": 4.409188583999988,
+      "last_run": "2026-02-26T17:38:25.747Z",
+      "last_success_wall_duration": 4.409188583999988,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_patterns.py::TestPatternMatchesGlob::test_question_mark": {
+      "status": "pass",
+      "wall_duration_seconds": 4.371594707999961,
+      "last_run": "2026-02-26T17:38:30.119Z",
+      "last_success_wall_duration": 4.371594707999961,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_patterns.py::TestPatternMatchesGlob::test_mixed_patterns": {
+      "status": "pass",
+      "wall_duration_seconds": 4.4459146249999755,
+      "last_run": "2026-02-26T17:38:34.565Z",
+      "last_success_wall_duration": 4.4459146249999755,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_patterns.py::TestPatternMatchesGlob::test_no_wildcards": {
+      "status": "pass",
+      "wall_duration_seconds": 4.611676082999911,
+      "last_run": "2026-02-26T17:38:39.178Z",
+      "last_success_wall_duration": 4.611676082999911,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_patterns.py::TestPatternMatchesGlob::test_double_wildcard_middle": {
+      "status": "pass",
+      "wall_duration_seconds": 4.712113207999966,
+      "last_run": "2026-02-26T17:38:43.890Z",
+      "last_success_wall_duration": 4.712113207999966,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_patterns.py::TestPatternMatchesRegex::test_simple_regex": {
+      "status": "pass",
+      "wall_duration_seconds": 4.5465980410000775,
+      "last_run": "2026-02-26T17:38:48.437Z",
+      "last_success_wall_duration": 4.5465980410000775,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_patterns.py::TestPatternMatchesRegex::test_regex_anchored": {
+      "status": "pass",
+      "wall_duration_seconds": 4.631272958999966,
+      "last_run": "2026-02-26T17:38:53.069Z",
+      "last_success_wall_duration": 4.631272958999966,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_patterns.py::TestPatternMatchesRegex::test_regex_groups": {
+      "status": "pass",
+      "wall_duration_seconds": 4.547132083000033,
+      "last_run": "2026-02-26T17:38:57.617Z",
+      "last_success_wall_duration": 4.547132083000033,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_patterns.py::TestPatternMatchesRegex::test_regex_optional": {
+      "status": "pass",
+      "wall_duration_seconds": 4.649366791000007,
+      "last_run": "2026-02-26T17:39:02.266Z",
+      "last_success_wall_duration": 4.649366791000007,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_patterns.py::TestGlobClass::test_pattern_property": {
+      "status": "pass",
+      "wall_duration_seconds": 4.555379332999932,
+      "last_run": "2026-02-26T17:39:06.822Z",
+      "last_success_wall_duration": 4.555379332999932,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_patterns.py::TestGlobClass::test_glob_property": {
+      "status": "pass",
+      "wall_duration_seconds": 4.580631874999963,
+      "last_run": "2026-02-26T17:39:11.403Z",
+      "last_success_wall_duration": 4.580631874999963,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_patterns.py::TestGlobClass::test_repr": {
+      "status": "pass",
+      "wall_duration_seconds": 4.660482334000059,
+      "last_run": "2026-02-26T17:39:16.064Z",
+      "last_success_wall_duration": 4.660482334000059,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_patterns.py::TestGlobClass::test_double_star_regex": {
+      "status": "pass",
+      "wall_duration_seconds": 5.42990541700006,
+      "last_run": "2026-02-26T17:39:21.494Z",
+      "last_success_wall_duration": 5.42990541700006,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_patterns.py::TestGlobClass::test_special_chars_escaped": {
+      "status": "pass",
+      "wall_duration_seconds": 4.642000666999957,
+      "last_run": "2026-02-26T17:39:26.136Z",
+      "last_success_wall_duration": 4.642000666999957,
+      "markers": []
+    },
+    "dimos/protocol/pubsub/test_spec.py::test_store[memory_context-topic-values0]": {
+      "status": "pass",
+      "wall_duration_seconds": 4.7460129580000645,
+      "last_run": "2026-02-26T17:39:30.883Z",
+      "last_success_wall_duration": 4.7460129580000645,
+      "markers": [
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_spec.py::test_store[lcm_context-topic1-values1]": {
+      "status": "pass",
+      "wall_duration_seconds": 4.860965042000054,
+      "last_run": "2026-02-26T17:39:35.744Z",
+      "last_success_wall_duration": 4.860965042000054,
+      "markers": [
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_spec.py::test_store[shared_memory_cpu_context-/shared_mem_topic_cpu-values2]": {
+      "status": "pass",
+      "wall_duration_seconds": 4.714490832999931,
+      "last_run": "2026-02-26T17:39:40.459Z",
+      "last_success_wall_duration": 4.714490832999931,
+      "markers": [
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_spec.py::test_multiple_subscribers[memory_context-topic-values0]": {
+      "status": "pass",
+      "wall_duration_seconds": 4.7240787080000155,
+      "last_run": "2026-02-26T17:39:45.183Z",
+      "last_success_wall_duration": 4.7240787080000155,
+      "markers": [
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_spec.py::test_multiple_subscribers[lcm_context-topic1-values1]": {
+      "status": "pass",
+      "wall_duration_seconds": 5.181023082999978,
+      "last_run": "2026-02-26T17:39:50.365Z",
+      "last_success_wall_duration": 5.181023082999978,
+      "markers": [
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_spec.py::test_multiple_subscribers[shared_memory_cpu_context-/shared_mem_topic_cpu-values2]": {
+      "status": "pass",
+      "wall_duration_seconds": 4.770159666999942,
+      "last_run": "2026-02-26T17:39:55.136Z",
+      "last_success_wall_duration": 4.770159666999942,
+      "markers": [
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_spec.py::test_unsubscribe[memory_context-topic-values0]": {
+      "status": "pass",
+      "wall_duration_seconds": 4.9354909159999805,
+      "last_run": "2026-02-26T17:40:00.072Z",
+      "last_success_wall_duration": 4.9354909159999805,
+      "markers": [
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_spec.py::test_unsubscribe[lcm_context-topic1-values1]": {
+      "status": "pass",
+      "wall_duration_seconds": 4.968037957999972,
+      "last_run": "2026-02-26T17:40:05.040Z",
+      "last_success_wall_duration": 4.968037957999972,
+      "markers": [
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_spec.py::test_unsubscribe[shared_memory_cpu_context-/shared_mem_topic_cpu-values2]": {
+      "status": "pass",
+      "wall_duration_seconds": 4.822029291999992,
+      "last_run": "2026-02-26T17:40:09.863Z",
+      "last_success_wall_duration": 4.822029291999992,
+      "markers": [
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_spec.py::test_multiple_messages[memory_context-topic-values0]": {
+      "status": "pass",
+      "wall_duration_seconds": 4.7730511249999985,
+      "last_run": "2026-02-26T17:40:14.637Z",
+      "last_success_wall_duration": 4.7730511249999985,
+      "markers": [
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_spec.py::test_multiple_messages[lcm_context-topic1-values1]": {
+      "status": "pass",
+      "wall_duration_seconds": 4.942051916999975,
+      "last_run": "2026-02-26T17:40:19.579Z",
+      "last_success_wall_duration": 4.942051916999975,
+      "markers": [
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_spec.py::test_multiple_messages[shared_memory_cpu_context-/shared_mem_topic_cpu-values2]": {
+      "status": "pass",
+      "wall_duration_seconds": 5.30311404200003,
+      "last_run": "2026-02-26T17:40:24.883Z",
+      "last_success_wall_duration": 5.30311404200003,
+      "markers": [
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_spec.py::test_async_iterator[memory_context-topic-values0]": {
+      "status": "fail",
+      "wall_duration_seconds": 4.379926124999998,
+      "last_run": "2026-02-26T17:40:29.263Z",
+      "markers": [
+        "asyncio",
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_spec.py::test_async_iterator[lcm_context-topic1-values1]": {
+      "status": "fail",
+      "wall_duration_seconds": 4.35462262499996,
+      "last_run": "2026-02-26T17:40:33.627Z",
+      "markers": [
+        "asyncio",
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_spec.py::test_async_iterator[shared_memory_cpu_context-/shared_mem_topic_cpu-values2]": {
+      "status": "fail",
+      "wall_duration_seconds": 4.3494926249999555,
+      "last_run": "2026-02-26T17:40:37.978Z",
+      "markers": [
+        "asyncio",
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_spec.py::test_high_volume_messages[memory_context-topic-values0]": {
+      "status": "pass",
+      "wall_duration_seconds": 4.555768625000026,
+      "last_run": "2026-02-26T17:40:42.534Z",
+      "last_success_wall_duration": 4.555768625000026,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_spec.py::test_high_volume_messages[lcm_context-topic1-values1]": {
+      "status": "pass",
+      "wall_duration_seconds": 5.901434790999978,
+      "last_run": "2026-02-26T17:40:48.436Z",
+      "last_success_wall_duration": 5.901434790999978,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/pubsub/test_spec.py::test_high_volume_messages[shared_memory_cpu_context-/shared_mem_topic_cpu-values2]": {
+      "status": "pass",
+      "wall_duration_seconds": 4.631170749999932,
+      "last_run": "2026-02-26T17:40:53.068Z",
+      "last_success_wall_duration": 4.631170749999932,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestConfigureSystemForLcm::test_creates_linux_checks_on_linux": {
+      "status": "pass",
+      "wall_duration_seconds": 4.873237290999969,
+      "last_run": "2026-02-26T17:40:57.941Z",
+      "last_success_wall_duration": 4.873237290999969,
+      "markers": []
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestConfigureSystemForLcm::test_creates_macos_checks_on_darwin": {
+      "status": "pass",
+      "wall_duration_seconds": 4.890806624999969,
+      "last_run": "2026-02-26T17:41:02.833Z",
+      "last_success_wall_duration": 4.890806624999969,
+      "markers": []
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestConfigureSystemForLcm::test_passes_check_only_flag": {
+      "status": "pass",
+      "wall_duration_seconds": 5.057246708000079,
+      "last_run": "2026-02-26T17:41:07.890Z",
+      "last_success_wall_duration": 5.057246708000079,
+      "markers": []
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestConfigureSystemForLcm::test_logs_error_on_unsupported_system": {
+      "status": "pass",
+      "wall_duration_seconds": 5.2793313329999805,
+      "last_run": "2026-02-26T17:41:13.170Z",
+      "last_success_wall_duration": 5.2793313329999805,
+      "markers": []
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestLCMConfig::test_default_values": {
+      "status": "pass",
+      "wall_duration_seconds": 5.59151320799999,
+      "last_run": "2026-02-26T17:41:18.762Z",
+      "last_success_wall_duration": 5.59151320799999,
+      "markers": []
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestLCMConfig::test_custom_url": {
+      "status": "pass",
+      "wall_duration_seconds": 5.590449041999993,
+      "last_run": "2026-02-26T17:41:24.353Z",
+      "last_success_wall_duration": 5.590449041999993,
+      "markers": []
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestLCMConfig::test_post_init_sets_default_url_when_none": {
+      "status": "pass",
+      "wall_duration_seconds": 5.5795022500000195,
+      "last_run": "2026-02-26T17:41:29.933Z",
+      "last_success_wall_duration": 5.5795022500000195,
+      "markers": []
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestLCMConfig::test_autoconf_can_be_disabled": {
+      "status": "pass",
+      "wall_duration_seconds": 5.592709666999988,
+      "last_run": "2026-02-26T17:41:35.526Z",
+      "last_success_wall_duration": 5.592709666999988,
+      "markers": []
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestTopic::test_str_without_lcm_type": {
+      "status": "pass",
+      "wall_duration_seconds": 5.579322958000004,
+      "last_run": "2026-02-26T17:41:41.106Z",
+      "last_success_wall_duration": 5.579322958000004,
+      "markers": []
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestTopic::test_str_with_lcm_type": {
+      "status": "pass",
+      "wall_duration_seconds": 5.619691374999936,
+      "last_run": "2026-02-26T17:41:46.726Z",
+      "last_success_wall_duration": 5.619691374999936,
+      "markers": []
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestLCMService::test_init_with_default_config": {
+      "status": "pass",
+      "wall_duration_seconds": 5.581661583999987,
+      "last_run": "2026-02-26T17:41:52.308Z",
+      "last_success_wall_duration": 5.581661583999987,
+      "markers": []
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestLCMService::test_init_with_custom_url": {
+      "status": "pass",
+      "wall_duration_seconds": 5.627456250000047,
+      "last_run": "2026-02-26T17:41:57.936Z",
+      "last_success_wall_duration": 5.627456250000047,
+      "markers": []
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestLCMService::test_init_with_existing_lcm_instance": {
+      "status": "pass",
+      "wall_duration_seconds": 5.68081812499999,
+      "last_run": "2026-02-26T17:42:03.617Z",
+      "last_success_wall_duration": 5.68081812499999,
+      "markers": []
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestLCMService::test_start_and_stop": {
+      "status": "pass",
+      "wall_duration_seconds": 5.8567610000000565,
+      "last_run": "2026-02-26T17:42:09.474Z",
+      "last_success_wall_duration": 5.8567610000000565,
+      "markers": []
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestLCMService::test_start_calls_configure_system": {
+      "status": "pass",
+      "wall_duration_seconds": 5.663288500000024,
+      "last_run": "2026-02-26T17:42:15.138Z",
+      "last_success_wall_duration": 5.663288500000024,
+      "markers": []
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestLCMService::test_start_with_autoconf_disabled": {
+      "status": "pass",
+      "wall_duration_seconds": 5.660706292000017,
+      "last_run": "2026-02-26T17:42:20.799Z",
+      "last_success_wall_duration": 5.660706292000017,
+      "markers": []
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestLCMService::test_getstate_excludes_unpicklable_attrs": {
+      "status": "pass",
+      "wall_duration_seconds": 5.620234708999982,
+      "last_run": "2026-02-26T17:42:26.420Z",
+      "last_success_wall_duration": 5.620234708999982,
+      "markers": []
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestLCMService::test_setstate_reinitializes_runtime_attrs": {
+      "status": "pass",
+      "wall_duration_seconds": 5.531983499999973,
+      "last_run": "2026-02-26T17:42:31.952Z",
+      "last_success_wall_duration": 5.531983499999973,
+      "markers": []
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestLCMService::test_start_reinitializes_lcm_after_unpickling": {
+      "status": "pass",
+      "wall_duration_seconds": 5.616256709000096,
+      "last_run": "2026-02-26T17:42:37.569Z",
+      "last_success_wall_duration": 5.616256709000096,
+      "markers": []
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestLCMService::test_stop_cleans_up_lcm_instance": {
+      "status": "pass",
+      "wall_duration_seconds": 5.6507312920000405,
+      "last_run": "2026-02-26T17:42:43.220Z",
+      "last_success_wall_duration": 5.6507312920000405,
+      "markers": []
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestLCMService::test_stop_preserves_external_lcm_instance": {
+      "status": "pass",
+      "wall_duration_seconds": 5.595978459000006,
+      "last_run": "2026-02-26T17:42:48.817Z",
+      "last_success_wall_duration": 5.595978459000006,
+      "markers": []
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestLCMService::test_get_call_thread_pool_creates_pool": {
+      "status": "pass",
+      "wall_duration_seconds": 5.522466125000036,
+      "last_run": "2026-02-26T17:42:54.340Z",
+      "last_success_wall_duration": 5.522466125000036,
+      "markers": []
+    },
+    "dimos/protocol/service/test_lcmservice.py::TestLCMService::test_stop_shuts_down_thread_pool": {
+      "status": "pass",
+      "wall_duration_seconds": 5.319416542000021,
+      "last_run": "2026-02-26T17:42:59.659Z",
+      "last_success_wall_duration": 5.319416542000021,
+      "markers": []
+    },
+    "dimos/protocol/service/test_spec.py::test_default_configuration": {
+      "status": "pass",
+      "wall_duration_seconds": 1.931910082999966,
+      "last_run": "2026-02-26T17:43:01.592Z",
+      "last_success_wall_duration": 1.931910082999966,
+      "markers": []
+    },
+    "dimos/protocol/service/test_spec.py::test_partial_configuration_override": {
+      "status": "pass",
+      "wall_duration_seconds": 1.9810448750000214,
+      "last_run": "2026-02-26T17:43:03.573Z",
+      "last_success_wall_duration": 1.9810448750000214,
+      "markers": []
+    },
+    "dimos/protocol/service/test_spec.py::test_complete_configuration_override": {
+      "status": "pass",
+      "wall_duration_seconds": 1.9246278750000057,
+      "last_run": "2026-02-26T17:43:05.498Z",
+      "last_success_wall_duration": 1.9246278750000057,
+      "markers": []
+    },
+    "dimos/protocol/service/test_spec.py::test_service_subclassing": {
+      "status": "pass",
+      "wall_duration_seconds": 1.9107138750000159,
+      "last_run": "2026-02-26T17:43:07.409Z",
+      "last_success_wall_duration": 1.9107138750000159,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestIsRootUser::test_is_root_when_euid_is_zero": {
+      "status": "pass",
+      "wall_duration_seconds": 2.0205400830000873,
+      "last_run": "2026-02-26T17:43:09.430Z",
+      "last_success_wall_duration": 2.0205400830000873,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestIsRootUser::test_is_not_root_when_euid_is_nonzero": {
+      "status": "pass",
+      "wall_duration_seconds": 1.884567207999993,
+      "last_run": "2026-02-26T17:43:11.315Z",
+      "last_success_wall_duration": 1.884567207999993,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestIsRootUser::test_returns_false_when_geteuid_not_available": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8960395420000422,
+      "last_run": "2026-02-26T17:43:13.212Z",
+      "last_success_wall_duration": 1.8960395420000422,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestSudoRun::test_runs_without_sudo_when_root": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8721815419999184,
+      "last_run": "2026-02-26T17:43:15.084Z",
+      "last_success_wall_duration": 1.8721815419999184,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestSudoRun::test_runs_with_sudo_when_not_root": {
+      "status": "pass",
+      "wall_duration_seconds": 1.884532499999972,
+      "last_run": "2026-02-26T17:43:16.969Z",
+      "last_success_wall_duration": 1.884532499999972,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestReadSysctlInt::test_reads_value_with_equals_sign": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8938730000000215,
+      "last_run": "2026-02-26T17:43:18.863Z",
+      "last_success_wall_duration": 1.8938730000000215,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestReadSysctlInt::test_reads_value_with_colon": {
+      "status": "pass",
+      "wall_duration_seconds": 1.9002407499999971,
+      "last_run": "2026-02-26T17:43:20.764Z",
+      "last_success_wall_duration": 1.9002407499999971,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestReadSysctlInt::test_returns_none_on_nonzero_returncode": {
+      "status": "pass",
+      "wall_duration_seconds": 1.9085395419999258,
+      "last_run": "2026-02-26T17:43:22.673Z",
+      "last_success_wall_duration": 1.9085395419999258,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestReadSysctlInt::test_returns_none_on_malformed_output": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8861982500000158,
+      "last_run": "2026-02-26T17:43:24.560Z",
+      "last_success_wall_duration": 1.8861982500000158,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestReadSysctlInt::test_returns_none_on_exception": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8758250410000328,
+      "last_run": "2026-02-26T17:43:26.438Z",
+      "last_success_wall_duration": 1.8758250410000328,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestWriteSysctlInt::test_calls_sudo_run_with_correct_args": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8797624160000124,
+      "last_run": "2026-02-26T17:43:28.318Z",
+      "last_success_wall_duration": 1.8797624160000124,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestConfigureSystem::test_skips_in_ci_environment": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8856445829999866,
+      "last_run": "2026-02-26T17:43:30.204Z",
+      "last_success_wall_duration": 1.8856445829999866,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestConfigureSystem::test_does_nothing_when_all_checks_pass": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8941804159999591,
+      "last_run": "2026-02-26T17:43:32.098Z",
+      "last_success_wall_duration": 1.8941804159999591,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestConfigureSystem::test_check_only_mode_does_not_fix": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8811566250000615,
+      "last_run": "2026-02-26T17:43:33.980Z",
+      "last_success_wall_duration": 1.8811566250000615,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestConfigureSystem::test_prompts_user_and_fixes_on_yes": {
+      "status": "pass",
+      "wall_duration_seconds": 1.868001958000008,
+      "last_run": "2026-02-26T17:43:35.848Z",
+      "last_success_wall_duration": 1.868001958000008,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestConfigureSystem::test_does_not_fix_on_no": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8898655000000726,
+      "last_run": "2026-02-26T17:43:37.739Z",
+      "last_success_wall_duration": 1.8898655000000726,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestConfigureSystem::test_exits_on_no_with_critical_check": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8737104590000817,
+      "last_run": "2026-02-26T17:43:39.613Z",
+      "last_success_wall_duration": 1.8737104590000817,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestConfigureSystem::test_handles_eof_error_on_input": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8814510829999345,
+      "last_run": "2026-02-26T17:43:41.494Z",
+      "last_success_wall_duration": 1.8814510829999345,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestMulticastConfiguratorLinux::test_check_returns_true_when_fully_configured": {
+      "status": "pass",
+      "wall_duration_seconds": 1.888110500000068,
+      "last_run": "2026-02-26T17:43:43.383Z",
+      "last_success_wall_duration": 1.888110500000068,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestMulticastConfiguratorLinux::test_check_returns_false_when_multicast_flag_missing": {
+      "status": "pass",
+      "wall_duration_seconds": 1.881830874999985,
+      "last_run": "2026-02-26T17:43:45.267Z",
+      "last_success_wall_duration": 1.881830874999985,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestMulticastConfiguratorLinux::test_check_returns_false_when_route_missing": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8907988749999787,
+      "last_run": "2026-02-26T17:43:47.158Z",
+      "last_success_wall_duration": 1.8907988749999787,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestMulticastConfiguratorLinux::test_check_returns_false_when_ip_not_found": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8817591670000693,
+      "last_run": "2026-02-26T17:43:49.040Z",
+      "last_success_wall_duration": 1.8817591670000693,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestMulticastConfiguratorLinux::test_explanation_includes_needed_commands": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8808734580000164,
+      "last_run": "2026-02-26T17:43:50.921Z",
+      "last_success_wall_duration": 1.8808734580000164,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestMulticastConfiguratorLinux::test_fix_runs_needed_commands": {
+      "status": "pass",
+      "wall_duration_seconds": 1.881615625000093,
+      "last_run": "2026-02-26T17:43:52.803Z",
+      "last_success_wall_duration": 1.881615625000093,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestMulticastConfiguratorMacOS::test_check_returns_true_when_route_exists": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8810069590000202,
+      "last_run": "2026-02-26T17:43:54.685Z",
+      "last_success_wall_duration": 1.8810069590000202,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestMulticastConfiguratorMacOS::test_check_returns_false_when_route_missing": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8798070420000004,
+      "last_run": "2026-02-26T17:43:56.565Z",
+      "last_success_wall_duration": 1.8798070420000004,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestMulticastConfiguratorMacOS::test_check_returns_false_on_netstat_error": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8919406250000466,
+      "last_run": "2026-02-26T17:43:58.457Z",
+      "last_success_wall_duration": 1.8919406250000466,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestMulticastConfiguratorMacOS::test_explanation_includes_route_command": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8686111670000245,
+      "last_run": "2026-02-26T17:44:00.326Z",
+      "last_success_wall_duration": 1.8686111670000245,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestMulticastConfiguratorMacOS::test_fix_runs_route_command": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8862413330000127,
+      "last_run": "2026-02-26T17:44:02.213Z",
+      "last_success_wall_duration": 1.8862413330000127,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestBufferConfiguratorLinux::test_check_returns_true_when_buffers_sufficient": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8849627079999773,
+      "last_run": "2026-02-26T17:44:04.098Z",
+      "last_success_wall_duration": 1.8849627079999773,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestBufferConfiguratorLinux::test_check_returns_false_when_rmem_max_low": {
+      "status": "pass",
+      "wall_duration_seconds": 1.880106000000029,
+      "last_run": "2026-02-26T17:44:05.979Z",
+      "last_success_wall_duration": 1.880106000000029,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestBufferConfiguratorLinux::test_check_returns_false_when_both_low": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8801529169999995,
+      "last_run": "2026-02-26T17:44:07.859Z",
+      "last_success_wall_duration": 1.8801529169999995,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestBufferConfiguratorLinux::test_explanation_lists_needed_changes": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8729369590000715,
+      "last_run": "2026-02-26T17:44:09.733Z",
+      "last_success_wall_duration": 1.8729369590000715,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestBufferConfiguratorLinux::test_fix_writes_needed_values": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8800503340000287,
+      "last_run": "2026-02-26T17:44:11.613Z",
+      "last_success_wall_duration": 1.8800503340000287,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestBufferConfiguratorMacOS::test_check_returns_true_when_buffers_sufficient": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8893718330000993,
+      "last_run": "2026-02-26T17:44:13.503Z",
+      "last_success_wall_duration": 1.8893718330000993,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestBufferConfiguratorMacOS::test_check_returns_false_when_values_low": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8697150410001633,
+      "last_run": "2026-02-26T17:44:15.373Z",
+      "last_success_wall_duration": 1.8697150410001633,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestBufferConfiguratorMacOS::test_explanation_lists_needed_changes": {
+      "status": "pass",
+      "wall_duration_seconds": 1.895984083000105,
+      "last_run": "2026-02-26T17:44:17.269Z",
+      "last_success_wall_duration": 1.895984083000105,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestBufferConfiguratorMacOS::test_fix_writes_needed_values": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8761389579998795,
+      "last_run": "2026-02-26T17:44:19.146Z",
+      "last_success_wall_duration": 1.8761389579998795,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestMaxFileConfiguratorMacOS::test_check_returns_true_when_soft_limit_sufficient": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8855548330000602,
+      "last_run": "2026-02-26T17:44:21.032Z",
+      "last_success_wall_duration": 1.8855548330000602,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestMaxFileConfiguratorMacOS::test_check_returns_false_when_soft_limit_low": {
+      "status": "pass",
+      "wall_duration_seconds": 1.9069954579998738,
+      "last_run": "2026-02-26T17:44:22.939Z",
+      "last_success_wall_duration": 1.9069954579998738,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestMaxFileConfiguratorMacOS::test_check_returns_false_when_both_limits_low": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8753011669998523,
+      "last_run": "2026-02-26T17:44:24.815Z",
+      "last_success_wall_duration": 1.8753011669998523,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestMaxFileConfiguratorMacOS::test_check_returns_false_on_exception": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8845774999998977,
+      "last_run": "2026-02-26T17:44:26.700Z",
+      "last_success_wall_duration": 1.8845774999998977,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestMaxFileConfiguratorMacOS::test_explanation_when_sudo_not_needed": {
+      "status": "pass",
+      "wall_duration_seconds": 1.876654957999941,
+      "last_run": "2026-02-26T17:44:28.577Z",
+      "last_success_wall_duration": 1.876654957999941,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestMaxFileConfiguratorMacOS::test_explanation_when_sudo_needed": {
+      "status": "pass",
+      "wall_duration_seconds": 1.88123054099991,
+      "last_run": "2026-02-26T17:44:30.459Z",
+      "last_success_wall_duration": 1.88123054099991,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestMaxFileConfiguratorMacOS::test_fix_raises_soft_limit_without_sudo": {
+      "status": "pass",
+      "wall_duration_seconds": 1.9005784999998285,
+      "last_run": "2026-02-26T17:44:32.360Z",
+      "last_success_wall_duration": 1.9005784999998285,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestMaxFileConfiguratorMacOS::test_fix_does_nothing_when_already_sufficient": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8921324159998911,
+      "last_run": "2026-02-26T17:44:34.252Z",
+      "last_success_wall_duration": 1.8921324159998911,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestMaxFileConfiguratorMacOS::test_fix_uses_launchctl_when_hard_limit_low": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8814690829999745,
+      "last_run": "2026-02-26T17:44:36.134Z",
+      "last_success_wall_duration": 1.8814690829999745,
+      "markers": []
+    },
+    "dimos/protocol/service/test_system_configurator.py::TestMaxFileConfiguratorMacOS::test_fix_raises_on_setrlimit_error": {
+      "status": "pass",
+      "wall_duration_seconds": 1.8678998330000323,
+      "last_run": "2026-02-26T17:44:38.002Z",
+      "last_success_wall_duration": 1.8678998330000323,
+      "markers": []
+    },
+    "dimos/robot/drone/test_drone.py::TestDroneControlCommands::test_arm_disarm_commands": {
+      "status": "pass",
+      "wall_duration_seconds": 10.830049624999985,
+      "last_run": "2026-02-26T17:44:48.833Z",
+      "last_success_wall_duration": 10.830049624999985,
+      "markers": []
+    },
+    "dimos/robot/drone/test_drone.py::TestDroneControlCommands::test_set_mode_command": {
+      "status": "pass",
+      "wall_duration_seconds": 9.517328166999855,
+      "last_run": "2026-02-26T17:44:58.351Z",
+      "last_success_wall_duration": 9.517328166999855,
+      "markers": []
+    },
+    "dimos/robot/drone/test_drone.py::TestDroneControlCommands::test_takeoff_land_commands": {
+      "status": "pass",
+      "wall_duration_seconds": 8.999275707999942,
+      "last_run": "2026-02-26T17:45:07.350Z",
+      "last_success_wall_duration": 8.999275707999942,
+      "markers": []
+    },
+    "dimos/robot/drone/test_drone.py::TestDronePerception::test_video_stream_replay": {
+      "status": "pass",
+      "wall_duration_seconds": 8.924986624999903,
+      "last_run": "2026-02-26T17:45:16.276Z",
+      "last_success_wall_duration": 8.924986624999903,
+      "markers": []
+    },
+    "dimos/robot/drone/test_drone.py::TestDroneMovementAndOdometry::test_movement_command_conversion": {
+      "status": "pass",
+      "wall_duration_seconds": 10.001830624999943,
+      "last_run": "2026-02-26T17:45:26.278Z",
+      "last_success_wall_duration": 10.001830624999943,
+      "markers": []
+    },
+    "dimos/robot/drone/test_drone.py::TestDroneMovementAndOdometry::test_odometry_from_replay": {
+      "status": "pass",
+      "wall_duration_seconds": 9.027633374999976,
+      "last_run": "2026-02-26T17:45:35.306Z",
+      "last_success_wall_duration": 9.027633374999976,
+      "markers": []
+    },
+    "dimos/robot/drone/test_drone.py::TestDroneMovementAndOdometry::test_position_integration_indoor": {
+      "status": "pass",
+      "wall_duration_seconds": 9.33120058299997,
+      "last_run": "2026-02-26T17:45:44.638Z",
+      "last_success_wall_duration": 9.33120058299997,
+      "markers": []
+    },
+    "dimos/robot/drone/test_drone.py::TestDroneStatusAndTelemetry::test_status_extraction": {
+      "status": "pass",
+      "wall_duration_seconds": 8.93420004200004,
+      "last_run": "2026-02-26T17:45:53.572Z",
+      "last_success_wall_duration": 8.93420004200004,
+      "markers": []
+    },
+    "dimos/robot/drone/test_drone.py::TestDroneStatusAndTelemetry::test_telemetry_json_publishing": {
+      "status": "pass",
+      "wall_duration_seconds": 9.3572582080001,
+      "last_run": "2026-02-26T17:46:02.930Z",
+      "last_success_wall_duration": 9.3572582080001,
+      "markers": []
+    },
+    "dimos/robot/drone/test_drone.py::TestFlyToErrorHandling::test_concurrency_lock": {
+      "status": "pass",
+      "wall_duration_seconds": 8.982651040999917,
+      "last_run": "2026-02-26T17:46:11.913Z",
+      "last_success_wall_duration": 8.982651040999917,
+      "markers": []
+    },
+    "dimos/robot/drone/test_drone.py::TestFlyToErrorHandling::test_error_when_not_connected": {
+      "status": "pass",
+      "wall_duration_seconds": 8.986850374999921,
+      "last_run": "2026-02-26T17:46:20.900Z",
+      "last_success_wall_duration": 8.986850374999921,
+      "markers": []
+    },
+    "dimos/robot/drone/test_drone.py::TestVisualServoingEdgeCases::test_deadband_prevents_integral_windup": {
+      "status": "pass",
+      "wall_duration_seconds": 8.909143959000009,
+      "last_run": "2026-02-26T17:46:29.810Z",
+      "last_success_wall_duration": 8.909143959000009,
+      "markers": []
+    },
+    "dimos/robot/drone/test_drone.py::TestVisualServoingEdgeCases::test_output_clamping": {
+      "status": "pass",
+      "wall_duration_seconds": 8.932551957999822,
+      "last_run": "2026-02-26T17:46:38.743Z",
+      "last_success_wall_duration": 8.932551957999822,
+      "markers": []
+    },
+    "dimos/robot/drone/test_drone.py::TestVisualServoingEdgeCases::test_reset_clears_integral": {
+      "status": "pass",
+      "wall_duration_seconds": 8.909506957999897,
+      "last_run": "2026-02-26T17:46:47.653Z",
+      "last_success_wall_duration": 8.909506957999897,
+      "markers": []
+    },
+    "dimos/robot/drone/test_drone.py::TestVisualServoingVelocity::test_velocity_from_bbox_center_error": {
+      "status": "pass",
+      "wall_duration_seconds": 8.991724416999844,
+      "last_run": "2026-02-26T17:46:56.645Z",
+      "last_success_wall_duration": 8.991724416999844,
+      "markers": []
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[coordinator-mobile-manip-mock]": {
+      "status": "pass",
+      "wall_duration_seconds": 5.725050333000021,
+      "last_run": "2026-02-26T17:47:02.371Z",
+      "last_success_wall_duration": 5.725050333000021,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[coordinator-mock-twist-base]": {
+      "status": "pass",
+      "wall_duration_seconds": 5.794600499999942,
+      "last_run": "2026-02-26T17:47:08.166Z",
+      "last_success_wall_duration": 5.794600499999942,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[demo-agent]": {
+      "status": "pass",
+      "wall_duration_seconds": 5.889820208000019,
+      "last_run": "2026-02-26T17:47:14.056Z",
+      "last_success_wall_duration": 5.889820208000019,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[demo-agent-camera]": {
+      "status": "pass",
+      "wall_duration_seconds": 5.907545583000174,
+      "last_run": "2026-02-26T17:47:19.964Z",
+      "last_success_wall_duration": 5.907545583000174,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[demo-object-scene-registration]": {
+      "status": "pass",
+      "wall_duration_seconds": 7.439629542000126,
+      "last_run": "2026-02-26T17:47:27.404Z",
+      "last_success_wall_duration": 7.439629542000126,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[demo-osm]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.397966875000158,
+      "last_run": "2026-02-26T17:47:33.802Z",
+      "last_success_wall_duration": 6.397966875000158,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[demo-skill]": {
+      "status": "pass",
+      "wall_duration_seconds": 5.795419500000077,
+      "last_run": "2026-02-26T17:47:39.598Z",
+      "last_success_wall_duration": 5.795419500000077,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[dual-xarm6-planner]": {
+      "status": "pass",
+      "wall_duration_seconds": 8.141216625000117,
+      "last_run": "2026-02-26T17:47:47.740Z",
+      "last_success_wall_duration": 8.141216625000117,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[keyboard-teleop-piper]": {
+      "status": "pass",
+      "wall_duration_seconds": 7.018017333999975,
+      "last_run": "2026-02-26T17:47:54.758Z",
+      "last_success_wall_duration": 7.018017333999975,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[keyboard-teleop-xarm6]": {
+      "status": "pass",
+      "wall_duration_seconds": 9.027888540999964,
+      "last_run": "2026-02-26T17:48:03.787Z",
+      "last_success_wall_duration": 9.027888540999964,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[keyboard-teleop-xarm7]": {
+      "status": "pass",
+      "wall_duration_seconds": 9.023082749999826,
+      "last_run": "2026-02-26T17:48:12.810Z",
+      "last_success_wall_duration": 9.023082749999826,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[mid360]": {
+      "status": "pass",
+      "wall_duration_seconds": 5.540694792000111,
+      "last_run": "2026-02-26T17:48:18.351Z",
+      "last_success_wall_duration": 5.540694792000111,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[mid360-fastlio]": {
+      "status": "pass",
+      "wall_duration_seconds": 5.518336458000122,
+      "last_run": "2026-02-26T17:48:23.871Z",
+      "last_success_wall_duration": 5.518336458000122,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[mid360-fastlio-voxels]": {
+      "status": "pass",
+      "wall_duration_seconds": 5.5154056249998975,
+      "last_run": "2026-02-26T17:48:29.388Z",
+      "last_success_wall_duration": 5.5154056249998975,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[mid360-fastlio-voxels-native]": {
+      "status": "pass",
+      "wall_duration_seconds": 5.513650124999927,
+      "last_run": "2026-02-26T17:48:34.903Z",
+      "last_success_wall_duration": 5.513650124999927,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[phone-go2-teleop]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.339830415999982,
+      "last_run": "2026-02-26T17:48:41.243Z",
+      "last_success_wall_duration": 6.339830415999982,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[simple-phone-teleop]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.280817292000167,
+      "last_run": "2026-02-26T17:48:47.525Z",
+      "last_success_wall_duration": 6.280817292000167,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[uintree-g1-primitive-no-nav]": {
+      "status": "pass",
+      "wall_duration_seconds": 5.896314458000008,
+      "last_run": "2026-02-26T17:48:53.422Z",
+      "last_success_wall_duration": 5.896314458000008,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[unitree-g1]": {
+      "status": "pass",
+      "wall_duration_seconds": 7.9768062500001395,
+      "last_run": "2026-02-26T17:49:01.399Z",
+      "last_success_wall_duration": 7.9768062500001395,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[unitree-g1-agentic]": {
+      "status": "pass",
+      "wall_duration_seconds": 10.36507558299997,
+      "last_run": "2026-02-26T17:49:11.765Z",
+      "last_success_wall_duration": 10.36507558299997,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[unitree-g1-agentic-sim]": {
+      "status": "pass",
+      "wall_duration_seconds": 10.405341665999964,
+      "last_run": "2026-02-26T17:49:22.171Z",
+      "last_success_wall_duration": 10.405341665999964,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[unitree-g1-basic]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.8211590420000725,
+      "last_run": "2026-02-26T17:49:28.993Z",
+      "last_success_wall_duration": 6.8211590420000725,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[unitree-g1-basic-sim]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.405452917000046,
+      "last_run": "2026-02-26T17:49:35.399Z",
+      "last_success_wall_duration": 6.405452917000046,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[unitree-g1-detection]": {
+      "status": "pass",
+      "wall_duration_seconds": 8.071579125000165,
+      "last_run": "2026-02-26T17:49:43.471Z",
+      "last_success_wall_duration": 8.071579125000165,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[unitree-g1-full]": {
+      "status": "pass",
+      "wall_duration_seconds": 11.210005665999837,
+      "last_run": "2026-02-26T17:49:54.681Z",
+      "last_success_wall_duration": 11.210005665999837,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[unitree-g1-joystick]": {
+      "status": "pass",
+      "wall_duration_seconds": 7.257291500000051,
+      "last_run": "2026-02-26T17:50:01.939Z",
+      "last_success_wall_duration": 7.257291500000051,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[unitree-g1-shm]": {
+      "status": "pass",
+      "wall_duration_seconds": 8.167686250000028,
+      "last_run": "2026-02-26T17:50:10.107Z",
+      "last_success_wall_duration": 8.167686250000028,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[unitree-g1-sim]": {
+      "status": "pass",
+      "wall_duration_seconds": 7.483521834000014,
+      "last_run": "2026-02-26T17:50:17.591Z",
+      "last_success_wall_duration": 7.483521834000014,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[unitree-go2]": {
+      "status": "pass",
+      "wall_duration_seconds": 7.068117542000022,
+      "last_run": "2026-02-26T17:50:24.660Z",
+      "last_success_wall_duration": 7.068117542000022,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[unitree-go2-agentic]": {
+      "status": "pass",
+      "wall_duration_seconds": 12.925781582999974,
+      "last_run": "2026-02-26T17:50:37.586Z",
+      "last_success_wall_duration": 12.925781582999974,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[unitree-go2-agentic-huggingface]": {
+      "status": "pass",
+      "wall_duration_seconds": 12.937970375000033,
+      "last_run": "2026-02-26T17:50:50.525Z",
+      "last_success_wall_duration": 12.937970375000033,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[unitree-go2-agentic-mcp]": {
+      "status": "pass",
+      "wall_duration_seconds": 13.87971016700007,
+      "last_run": "2026-02-26T17:51:04.405Z",
+      "last_success_wall_duration": 13.87971016700007,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[unitree-go2-agentic-ollama]": {
+      "status": "pass",
+      "wall_duration_seconds": 13.14287791699986,
+      "last_run": "2026-02-26T17:51:17.548Z",
+      "last_success_wall_duration": 13.14287791699986,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[unitree-go2-basic]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.1646200840000525,
+      "last_run": "2026-02-26T17:51:23.713Z",
+      "last_success_wall_duration": 6.1646200840000525,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[unitree-go2-detection]": {
+      "status": "pass",
+      "wall_duration_seconds": 8.391928458000068,
+      "last_run": "2026-02-26T17:51:32.106Z",
+      "last_success_wall_duration": 8.391928458000068,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[unitree-go2-ros]": {
+      "status": "pass",
+      "wall_duration_seconds": 7.217919625000097,
+      "last_run": "2026-02-26T17:51:39.324Z",
+      "last_success_wall_duration": 7.217919625000097,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[unitree-go2-spatial]": {
+      "status": "pass",
+      "wall_duration_seconds": 7.960024708000012,
+      "last_run": "2026-02-26T17:51:47.285Z",
+      "last_success_wall_duration": 7.960024708000012,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[unitree-go2-temporal-memory]": {
+      "status": "pass",
+      "wall_duration_seconds": 16.40788049999997,
+      "last_run": "2026-02-26T17:52:03.693Z",
+      "last_success_wall_duration": 16.40788049999997,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[unitree-go2-vlm-stream-test]": {
+      "status": "pass",
+      "wall_duration_seconds": 6.792051833999809,
+      "last_run": "2026-02-26T17:52:10.485Z",
+      "last_success_wall_duration": 6.792051833999809,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[xarm-perception]": {
+      "status": "pass",
+      "wall_duration_seconds": 8.867537917000009,
+      "last_run": "2026-02-26T18:08:08.005Z",
+      "last_success_wall_duration": 8.867537917000009,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[xarm-perception-agent]": {
+      "status": "pass",
+      "wall_duration_seconds": 9.448758832999971,
+      "last_run": "2026-02-26T18:14:45.978Z",
+      "last_success_wall_duration": 9.448758832999971,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    },
+    "dimos/robot/test_all_blueprints.py::test_all_blueprints_are_valid[xarm6-planner-only]": {
+      "status": "pass",
+      "wall_duration_seconds": 10.35325241700001,
+      "last_run": "2026-02-26T18:14:56.333Z",
+      "last_success_wall_duration": 10.35325241700001,
+      "markers": [
+        "integration",
+        "parametrize"
+      ]
+    }
+  },
+  "commands": {},
+  "last_run": {
+    "stage": null,
+    "completed": []
+  }
+}

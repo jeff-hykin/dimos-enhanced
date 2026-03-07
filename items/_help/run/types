@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+# changed files
+files=$(git diff --name-only dev...HEAD -- '*.py') && [ -n "$files" ]
+echo "changed files: $files"
+# formatting
+ruff check --unsafe-fixes --fix $files
+# type checking
+mypy_output=$(mypy --no-error-summary $files 2>&1 || true)
+filtered_output=$(
+  printf "%s\n" "$mypy_output" | rg -v \
+    -e '^dimos/spec/utils\.py:18: error: Cannot find implementation or library stub for module named "annotation_protocol"  \[import-not-found\]$' \
+    -e '^dimos/spec/utils\.py:18: note: See https://mypy\.readthedocs\.io/en/stable/running_mypy\.html#missing-imports$' \
+    -e '^dimos/core/test_blueprints\.py:82: error: Function "builtins\.callable" is not valid as a type  \[valid-type\]$' \
+    -e '^dimos/core/test_blueprints\.py:82: note: Perhaps you meant "typing\.Callable" instead of "callable"\?$' \
+    -e '^dimos/core/test_blueprints\.py:87: error: Argument 1 to "set_rpc" of "RpcCall" has incompatible type "RPCSpec"; expected "LCMRPC"  \[arg-type\]$' \
+    -e '^dimos/core/test_blueprints\.py:149: error: Need type annotation for "custom_transport"  \[var-annotated\]$' \
+    -e '^dimos/core/test_blueprints\.py:169: error: Module "dimos\.protocol\.pubsub" does not explicitly export attribute "lcm"  \[attr-defined\]$' \
+    -e '^dimos/core/test_blueprints\.py:173: error: Argument 1 to "build" of "Blueprint" has incompatible type "\*\*dict\[str, GlobalConfig\]"; expected "Mapping\[str, Any\] \| None"  \[arg-type\]$' \
+    -e '^dimos/core/test_blueprints\.py:193: error: "Transport\[Data1\]" has no attribute "topic"  \[attr-defined\]$' \
+    -e '^dimos/core/test_blueprints\.py:194: error: "Transport\[Data2\]" has no attribute "topic"  \[attr-defined\]$' \
+    -e '^dimos/core/test_blueprints\.py:195: error: "Transport\[Data3\]" has no attribute "topic"  \[attr-defined\]$' \
+    -e '^dimos/core/test_blueprints\.py:281: error: Module "dimos\.protocol\.pubsub" does not explicitly export attribute "lcm"  \[attr-defined\]$' \
+    -e '^dimos/core/test_blueprints\.py:310: error: Argument 1 to "build" of "Blueprint" has incompatible type "\*\*dict\[str, GlobalConfig\]"; expected "Mapping\[str, Any\] \| None"  \[arg-type\]$' \
+    -e '^dimos/core/test_blueprints\.py:325: error: "Transport\[Data1\]" has no attribute "topic"  \[attr-defined\]$' \
+    -e '^dimos/core/test_blueprints\.py:326: error: "Transport\[Data1\]" has no attribute "topic"  \[attr-defined\]$' \
+    -e '^dimos/core/test_blueprints\.py:330: error: "Transport\[Data1\]" has no attribute "topic"  \[attr-defined\]$' \
+    -e '^dimos/core/test_blueprints\.py:360: error: Argument 1 to "build" of "Blueprint" has incompatible type "\*\*dict\[str, GlobalConfig\]"; expected "Mapping\[str, Any\] \| None"  \[arg-type\]$' \
+    -e '^dimos/core/test_blueprints\.py:374: error: "Transport\[FutureData\]" has no attribute "topic"  \[attr-defined\]$'
+)
+
+if [ -n "$filtered_output" ]; then
+  printf "%s\n" "$filtered_output"
+  exit 1
+fi

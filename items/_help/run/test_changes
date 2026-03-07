@@ -1,0 +1,374 @@
+#!/usr/bin/env -S deno run --allow-all --no-lock
+import * as dax from "https://esm.sh/@jsr/david__dax@0.45.0/mod.ts" // see: https://github.com/dsherret/dax
+import { env, aliases, $stdout, $stderr, initHelpers, iterateOver } from "https://esm.sh/gh/jeff-hykin/bash2deno@0.1.0.2/helpers.js"
+let { $, appendTo, overwrite, hasCommand, makeScope, settings, exitCodeOfLastChildProcess } = initHelpers({ dax })
+import { FileSystem, glob } from "https://deno.land/x/quickr@0.8.13/main/file_system.js"
+import toml from "https://esm.sh/@iarna/toml@2.2.5"
+import { Console, green, red, cyan, yellow, magenta } from "https://deno.land/x/quickr@0.8.13/main/console.js"
+import { parseArgs, flag, required, initialValue } from "https://esm.sh/gh/jeff-hykin/good-js@1.18.2.0/source/flattened/parse_args.js"
+import { toCamelCase } from "https://esm.sh/gh/jeff-hykin/good-js@1.18.2.0/source/flattened/to_camel_case.js"
+import { didYouMean } from "https://esm.sh/gh/jeff-hykin/good-js@1.18.2.0/source/flattened/did_you_mean.js"
+import Yaml from 'https://esm.sh/yaml@2.4.3'
+
+import { getChangedFiles, getProjectToml, repoRoot } from '../tools.js'
+const $$ = (...args)=>dax.$(...args).noThrow()
+const printOutput = (result) => {
+    const chunks = []
+    if (result?.stdout?.trim()) {
+        const text = result.stdout.trimEnd()
+        chunks.push(text)
+        console.log(text)
+    }
+    if (result?.stderr?.trim()) {
+        const text = result.stderr.trimEnd()
+        chunks.push(text)
+        console.log(text)
+    }
+    return chunks.join("\n")
+}
+
+// 
+// 
+// cli arg parsing
+// 
+// 
+
+    // 
+    // check for help
+    // 
+    const { help: showHelp, } = parseArgs({
+        rawArgs: Deno.args,
+        fields: [
+            [["--help", ], flag, ],
+        ],
+    }).simplifiedNames
+    const highlightHelp = (string)=>string.replace(
+            // the [value]
+            /(?<=\n    --(?:\w|-)+\s+)\[.+?\]/g, (match)=>`${magenta(match)}`
+        ).replace(
+            // the Notes:
+            /\n\w+:/g, (match)=>`\n${yellow.bold(match)}`
+        ).replace(
+            // the --arg
+            /\n    (--(?:\w|-)+)/g, (match)=>`    ${green(match)}`
+        )
+    if (showHelp) {
+        console.log(highlightHelp(`
+            examples: 
+                bin/pr_check
+                bin/pr_check --resume 
+                # ^ pickup on "all tests" wherever you left off (will also re-run failing tests)
+                bin/pr_check --without '[gpu]'
+                bin/pr_check --without '[gpu,integration]'
+                # NOTE: parsed as yaml ^, same as '["gpu","integration"]'
+        `.replace(/\n            /g,"\n")))
+        Deno.exit(0)
+    }
+
+    // 
+    // normal usage
+    // 
+    const output = parseArgs({
+        rawArgs: Deno.args,
+        fields: [
+            [[ "--without", ], initialValue([]),  ],
+            [[ "--resume", ], flag,  ],
+            [[ "--mypy-only", ], flag,  ],
+            [[ "--test-only", ], flag,  ],
+            [[ "--print-cli-commands", ], flag,  ],
+        ],
+        valueTransformer: Yaml.parse,
+        nameTransformer: toCamelCase,
+        nameRepeats: "useLast",
+        namedArgsStopper: "--",
+    })
+    didYouMean({
+        givenWords: Object.keys(output.implicitArgsByName).filter(each=>each.startsWith(`-`)),
+        possibleWords: Object.keys(output.explicitArgsByName).filter(each=>each.startsWith(`-`)),
+        autoThrow: true,
+    })
+    
+    const cliArgValuesByName = output.simplifiedNames
+    // ex: cliArgValuesByName.without 
+
+// 
+// 
+// main code
+// 
+// 
+async function main({without, resume, mypyOnly, testOnly, printCliCommands}) {
+    if (mypyOnly && testOnly) {
+        throw Error(`Cannot use both --mypy-only and --test-only`)
+    }
+    if (printCliCommands) {
+        dax.$.setPrintCommand(true)
+        $.setPrintCommand(true)
+    }
+    // 
+    // start some things (which run in the background) so they're ready later
+    // 
+    let getChangedFilesPromise = getChangedFiles()
+    let parsedToml, mypyExcludeRegex, hasClaude
+    const mypyPromises = Promise.all([
+        (async ()=>{
+            parsedToml = await getProjectToml()
+            let mypyExclude = parsedToml?.tool?.mypy?.exclude
+            mypyExcludeRegex = mypyExclude ? new RegExp(mypyExclude) : /(^|\/)test_[^/]+\.py$/ 
+        })(),
+        (async ()=>{
+            hasClaude = await hasCommand("claude")
+        })(),
+    ])
+    let withoutMarkers = ["neverending", "tofix", ...without]
+    // check if ros or cuda exist
+    const testingPromises = Promise.all([
+        ((async ()=>{
+            let hasCuda = (await hasCommand("nvidia-smi")) || (await hasCommand("nvcc"))
+            if (!hasCuda) {
+                withoutMarkers.push("cuda")
+                console.log(yellow`I'll skip cuda because cuda is not installed`)
+            }
+        })()),
+        ((async ()=>{
+            let hasRos = (await hasCommand("ros2")) || (Deno.env.get("ROS_DISTRO") != null) || (Deno.env.get("ROS_VERSION") != null)
+            if (!hasRos) {
+                withoutMarkers.push("ros")
+                console.log(yellow`I'll skip ros tests because ros is not installed`)
+            }
+        })()),
+    ])
+    let generateBlueprintsPromise = ((async ()=>{
+        const stashWorked = await $$`git stash`.text("combined") != "No local changes to save"
+        var {code} = await $$`pytest ${repoRoot}/dimos/robot/test_all_blueprints_generation.py`.text("combined")
+        if (code != 0) {
+            // stash existing changes (if any) so we can commit the new blueprint
+            const stashWorked = await $$`git stash`.text("combined") != "No local changes to save"
+            await $$`pytest ${repoRoot}/dimos/robot/test_all_blueprints_generation.py`.text("combined")
+            await $$`git add ${repoRoot}/dimos/robot/all_blueprints.py`
+            await $$`git commit -m ${`all_blueprints update`}`
+            if (stashWorked) {
+                console.log(`stashWorked`)
+                await $$`git stash pop`
+            }
+        }
+        // sanity check after (don't await, just run in background)
+        ($$`pytest ${repoRoot}/dimos/robot/test_all_blueprints_generation.py`).then(({code})=>{
+            if (code != 0) {
+                console.error(`# `)
+                console.error(`# `)
+                console.error(`# Idk how but all_blueprints failed?`)
+                console.error(`# `)
+                console.error(`# `)
+            }
+        })
+    })())
+    let { filesThatExist, testFiles: changedTestFiles } = await getChangedFilesPromise
+    let testFiles = []
+    let ruffPromise = ((async ()=>{
+        // 
+        // formatting / ruff
+        // 
+        if (!mypyOnly && !testOnly) {
+            console.log(`# `)
+            console.log(`# Checking formatting`)
+            console.log(`# `)
+            testFiles = changedTestFiles
+            await $`ruff format`
+            await $`ruff check --unsafe-fixes --fix ${filesThatExist}`
+        }
+    })())
+    let uvLockPromise = ((async ()=>{
+        // uv lock as needed
+        for (const each of filesThatExist) {
+            if (each.includes("pyproject.toml")) {
+                await $$`uv lock`
+            }
+        }
+    })())
+    
+    // These things can change files, but they should be capable of running in parallel
+    // only add stuff if you know what everything else is doing
+    await Promise.all([
+        generateBlueprintsPromise,
+        ruffPromise,
+        uvLockPromise,
+    ])
+    
+    // 
+    // checks
+    // 
+    await $$`pre-commit run --all-files`
+    
+    // 
+    // type hints
+    // 
+    if (!testOnly) {
+        const mypyPath = `${repoRoot}/.venv/bin/mypy`
+        await mypyPromises
+        const runMypyChecks = async (label) => {
+            let failedMypy = false
+            const mypyErrors = []
+            if (label) {
+                console.log(`\n# `)
+                console.log(label)
+                console.log(`# `)
+            }
+            let filesForMypy = filesThatExist.filter(each=>each.startsWith("dimos/") && !each.match(mypyExcludeRegex))
+            const allPython = (await $.str`git -C ${repoRoot} ls-files -co --exclude-standard -z -- ${"*.py"}`)
+                .split(/\0+/)
+                .filter(Boolean)
+            let filesForMypySet = new Set(filesForMypy)
+            const remainingForMypy = allPython.filter((each) => each.startsWith("dimos/") && !each.match(mypyExcludeRegex) && !filesForMypySet.has(each))
+            if (filesForMypy.length === 0) {
+                console.log(yellow`No changed Python files to type check.`)
+            }
+            if (!resume && remainingForMypy.length === 0) {
+                console.log(yellow`No remaining Python files to type check.`)
+            }
+            // 
+            // parallel run of mypy tests
+            // 
+            await Promise.all([
+                // 
+                // 3.10 quick
+                // 
+                (async () => {
+                    if (filesForMypy.length === 0) {
+                        return
+                    }
+                    const version = "3.10"
+                    const label = "changed files"
+                    console.log(`Starting mypy for ${cyan(label)} (python ${version})`)
+                    const result = await $$`${mypyPath} --python-version ${version} --no-error-summary ${filesForMypy}`.quiet()
+                    const failed = (result.code != 0)
+                    if (!failed) {
+                        console.log(cyan`for ${label}, python ${version}: Type checking passed!`)
+                    } else {
+                        console.log(red`for ${label} python ${version}: Type checking failed!`)
+                        const output = printOutput(result)
+                        failedMypy = true
+                        mypyErrors.push(`${label} (python ${version})\n${output || "(no output)"}`)
+                    }
+                })(),
+                // 
+                // 3.12 quick
+                // 
+                (async () => {
+                    if (filesForMypy.length === 0) {
+                        return
+                    }
+                    const version = "3.12"
+                    const label = "changed files"
+                    console.log(`Starting mypy for ${cyan(label)} (python ${version})`)
+                    const result = await $$`${mypyPath} --python-version ${version} --no-error-summary ${filesForMypy}`.quiet()
+                    const failed = (result.code != 0)
+                    if (!failed) {
+                        console.log(cyan`for ${label}, python ${version}: Type checking passed!`)
+                    } else {
+                        console.log(red`for ${label} python ${version}: Type checking failed!`)
+                        const output = printOutput(result)
+                        failedMypy = true
+                        mypyErrors.push(`${label} (python ${version})\n${output || "(no output)"}`)
+                    }
+                })(),
+                // 
+                // 3.10 slow
+                // 
+                (async () => {
+                    if (resume || remainingForMypy.length === 0) {
+                        return
+                    }
+                    const version = "3.10"
+                    const label = "non-changed files"
+                    console.log(`Starting mypy for ${cyan(label)} (python ${version})`)
+                    const result = await $$`${mypyPath} --python-version ${version} --no-error-summary ${remainingForMypy}`.quiet()
+                    const failed = (result.code != 0)
+                    if (!failed) {
+                        console.log(cyan`for ${label}, python ${version}: Type checking passed!`)
+                    } else {
+                        console.log(red`for ${label} python ${version}: Type checking failed!`)
+                        const output = printOutput(result)
+                        failedMypy = true
+                        mypyErrors.push(`${label} (python ${version})\n${output || "(no output)"}`)
+                    }
+                })(),
+                // 
+                // 3.12 slow
+                // 
+                (async () => {
+                    if (resume || remainingForMypy.length === 0) {
+                        return
+                    }
+                    const version = "3.12"
+                    const label = "non-changed files"
+                    console.log(`Starting mypy for ${cyan(label)} (python ${version})`)
+                    const result = await $$`${mypyPath} --python-version ${version} --no-error-summary ${remainingForMypy}`.quiet()
+                    const failed = (result.code != 0)
+                    if (!failed) {
+                        console.log(cyan`for ${label}, python ${version}: Type checking passed!`)
+                    } else {
+                        console.log(red`for ${label} python ${version}: Type checking failed!`)
+                        const output = printOutput(result)
+                        failedMypy = true
+                        mypyErrors.push(`${label} (python ${version})\n${output || "(no output)"}`)
+                    }
+                })(),
+            ])
+            return { failedMypy, mypyErrors }
+        }
+        let firstMypyPass = true
+        while (true) {
+            const label = firstMypyPass ? "# Checking type hints" : "# Re-checking type hints"
+            const { failedMypy, mypyErrors } = await runMypyChecks(label)
+            if (!failedMypy) {
+                break
+            }
+            if (hasClaude && Deno.isatty(Deno.stdin.rid) && !mypyOnly) {
+                if (confirm("ask claude to fix these?")) {
+                    const allowedTools = "Task,Edit,Read,Update,Write,WebFetch,WebSearch,Glob,Grep,Write(./**/*),Bash(*)"
+                    const prompt = `Please fix these mypy errors:\n\n${mypyErrors.join("\n\n")}\n\nAfter you update the code, please run: ${FileSystem.thisFile} --mypy-only`
+                    await $$`claude --allowedTools ${allowedTools} -p ${prompt}`
+                    firstMypyPass = false
+                    continue
+                } else {
+                    break
+                }
+            }
+        }
+        if (mypyOnly) {
+            return
+        }
+    }
+
+    // 
+    // actual tests
+    // 
+    console.log(`\n# `)
+    console.log(`# Running relevant tests`)
+    console.log(`# `)
+    if (testFiles.length === 0) {
+        let { testFiles: changedTestFiles } = await getChangedFiles()
+        testFiles = changedTestFiles
+    }
+    const withoutArgs = withoutMarkers.join(",")
+    // run tests
+    let result = await $$`${FileSystem.thisFolder}/tests --without ${withoutArgs} --explicit-tests ${JSON.stringify(testFiles)}`
+    if (result.code != 0) {
+        throw Error(`Relevant tests failed`)
+    } else {
+        console.log(green`Relevant tests passed!`)
+    }
+
+    // run full tests
+    console.log(`\n# `)
+    console.log(`# Running full tests`)
+    console.log(`# `)
+    await dax.$`${FileSystem.thisFolder}/tests --refresh-test-list --without ${withoutArgs}`
+}
+try {
+    await main(cliArgValuesByName)
+} catch (error) {
+    console.log()
+    console.log()
+    console.error(`Error: ${error.message}`)
+}

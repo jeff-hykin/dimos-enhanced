@@ -1,0 +1,74 @@
+#!/usr/bin/env -S deno run --allow-all
+// @ts-check
+import $ from "https://esm.sh/dax-sh@0.42.0"
+import { resolve, dirname, relative, join } from "https://esm.sh/path-browserify@1.0.1"
+
+const enhanceDir = resolve(dirname(new URL(import.meta.url).pathname), "..")
+const itemsDir = join(enhanceDir, "items")
+const parentDir = dirname(enhanceDir) // the repo that contains .ignore.enhance
+
+// Pull latest from remote
+try {
+    await $`git -C ${enhanceDir} pull --rebase`.noThrow()
+} catch {
+    console.log("(no remote history yet, skipping pull)")
+}
+
+// Walk items/ and create symlinks in the parent repo
+for await (const entry of Deno.readDir(itemsDir)) {
+    await linkItem(join(itemsDir, entry.name), join(parentDir, entry.name), entry)
+}
+
+// Ensure all top-level symlinked items are git-excluded
+const excludePath = join(parentDir, ".git", "info", "exclude")
+let excludeContent = ""
+try {
+    excludeContent = await Deno.readTextFile(excludePath)
+} catch { /* file might not exist */ }
+
+const topLevelItems = []
+for await (const entry of Deno.readDir(itemsDir)) {
+    topLevelItems.push(entry.name)
+}
+
+let changed = false
+for (const name of topLevelItems) {
+    // Check both the name and common sub-paths
+    if (!excludeContent.includes(name)) {
+        excludeContent += `\n${name}`
+        changed = true
+    }
+}
+if (changed) {
+    await Deno.writeTextFile(excludePath, excludeContent.replace(/\n{3,}/g, "\n\n") + "\n")
+    console.log(`Updated ${excludePath}`)
+}
+
+console.log("enhance pull complete")
+
+// Recursively link: if source is a dir, ensure target dir exists and link children
+// If source is a file, create a symlink
+async function linkItem(srcPath, targetPath, entry) {
+    if (entry.isDirectory) {
+        // For directories, create the dir in parent and recurse
+        try { await Deno.mkdir(targetPath, { recursive: true }) } catch { /* exists */ }
+        for await (const child of Deno.readDir(srcPath)) {
+            await linkItem(join(srcPath, child.name), join(targetPath, child.name), child)
+        }
+    } else {
+        // For files, create a symlink (remove existing target first)
+        try {
+            const stat = await Deno.lstat(targetPath)
+            if (stat.isSymlink) {
+                await Deno.remove(targetPath)
+            } else {
+                // Real file exists — don't clobber it, warn instead
+                console.warn(`  SKIP: ${targetPath} exists and is not a symlink`)
+                return
+            }
+        } catch { /* target doesn't exist, good */ }
+
+        await Deno.symlink(srcPath, targetPath)
+        console.log(`  ${targetPath} -> ${srcPath}`)
+    }
+}

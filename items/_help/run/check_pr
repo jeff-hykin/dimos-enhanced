@@ -1,0 +1,633 @@
+#!/usr/bin/env -S deno run --allow-all --no-lock
+import * as dax from "https://esm.sh/@jsr/david__dax@0.45.0/mod.ts" // see: https://github.com/dsherret/dax
+import { FileSystem } from "https://deno.land/x/quickr@0.8.13/main/file_system.js"
+import toml from "https://esm.sh/@iarna/toml@2.2.5"
+import { Console, green as greenInner, red as redInner, cyan as cyanInner, yellow as yellowInner, magenta as magentaInner } from "https://deno.land/x/quickr@0.8.13/main/console.js"
+import { Console } from "https://deno.land/x/quickr@0.8.13/main/console.js"
+const green=(a)=>greenInner(a)+""
+const red=(a)=>redInner(a)+""
+const cyan=(a)=>cyanInner(a)+""
+const yellow=(a)=>yellowInner(a)+""
+const magenta=(a)=>magentaInner(a)+""
+import { parseArgs, flag, required, initialValue } from "https://esm.sh/gh/jeff-hykin/good-js@1.18.3.0/source/flattened/parse_args.js"
+import { toCamelCase } from "https://esm.sh/gh/jeff-hykin/good-js@1.18.3.0/source/flattened/to_camel_case.js"
+import { didYouMean } from "https://esm.sh/gh/jeff-hykin/good-js@1.18.3.0/source/flattened/did_you_mean.js"
+import Yaml from 'https://esm.sh/yaml@2.4.3'
+import { zipLongList as zip } from 'https://esm.sh/gh/jeff-hykin/good-js@1.18.3.0/source/flattened/zip_long_list.js'
+
+import { getChangedFiles, getProjectToml, repoRoot, cliSequence, getAllTestNames, hasCommand, printOutput, normalizePipeOutput, loadCache, saveCache, checkPrCachePath, collectTests } from '../tools.js'
+
+const $ = dax.$
+const $$ = (...args) => dax.$(...args).noThrow()
+
+// CLI arg parsing
+const { help: showHelp } = parseArgs({
+    rawArgs: Deno.args,
+    fields: [[["--help"], flag]],
+}).simplifiedNames
+
+const highlightHelp = (string) => string
+    .replace(/(?<=\n    --(?:\w|-)+\s+)\[.+?\]/g, (match) => `${magenta(match)}`)
+    .replace(/\n\w+:/g, (match) => `\n${yellow.bold(match)}`)
+    .replace(/\n    (--(?:\w|-)+)/g, (match) => `    ${green(match)}`)
+
+if (showHelp) {
+    console.log(highlightHelp(`
+        examples:
+            bin/check_pr
+            bin/check_pr --resume
+            # ^ pickup wherever you left off (will re-run failing tests first)
+            bin/check_pr --tests '[gpu]'
+            bin/check_pr --tests '[gpu,integration]'
+            # NOTE: parsed as yaml ^, same as '["gpu","integration"]'
+            bin/check_pr --only '[gen,checks,mypy]'
+            # ^ only run generation, checks, and mypy (skip tests)
+            bin/check_pr --claude
+            # ^ automatically fix mypy errors and failing tests with Claude
+
+        options:
+            --resume               Skip past tests that succeeded in previous run
+            --claude               Auto-fix mypy errors and failing tests with Claude
+            --only [list]          Only run specific stages:
+                                     gen     = ruff, blueprints, uv lock
+                                     checks  = pre-commit
+                                     mypy    = type checking
+                                     tests1  = relevant tests (changed files)
+                                     tests2  = all other tests
+            --tests [list]         Run specific pytest markers (e.g., "tool,gpu")
+            --print-cli-commands   Show all CLI commands being executed
+    `.replace(/\n        /g, "\n")))
+    Deno.exit(0)
+}
+
+console.debug(`Deno.args is:`,Deno.args)
+const cliParsedArgs = parseArgs({
+    rawArgs: Deno.args,
+    fields: [
+        [["--resume"], flag],
+        [["--claude"], flag],
+        [["--only"], initialValue([])],
+        [["--tests"], initialValue([])],
+        [["--print-cli-commands"], flag],
+    ],
+    valueTransformer: Yaml.parse,
+    nameTransformer: toCamelCase,
+    nameRepeats: "useLast",
+    namedArgsStopper: "--",
+})
+
+didYouMean({
+    givenWords: Object.keys(cliParsedArgs.implicitArgsByName).filter(each => each.startsWith(`-`)),
+    possibleWords: Object.keys(cliParsedArgs.explicitArgsByName).filter(each => each.startsWith(`-`)),
+    autoThrow: true,
+})
+
+// Helper functions for running checks
+async function runMypyChecks({ resume, filesThatExist, mypyExcludeRegex, allPython }) {
+    const mypyPath = `${repoRoot}/.venv/bin/mypy`
+
+    const filesForMypy = filesThatExist.filter(each => each.startsWith("dimos/") && !each.match(mypyExcludeRegex) && each.endsWith(".py"))
+    const filesForMypySet = new Set(filesForMypy)
+    const remainingForMypy = allPython.filter(
+        (each) => each.startsWith("dimos/") && !each.match(mypyExcludeRegex) && !filesForMypySet.has(each)
+    )
+
+    const mypyResults = await Promise.all([
+        // 3.10 changed files
+        filesForMypy.length !== 0 && cliSequence(async ($) => {
+            const name = 'mypy-3.10-changed'
+            await $`echo ${`Starting mypy for changed files (python 3.10)`}`
+            const { code } = await $`${mypyPath} --python-version ${"3.10"} --no-error-summary ${filesForMypy}`.noThrow()
+            await $`echo ${(code === 0 ? green(`${name} passed!`) : red(`${name} failed!`))}`
+            return { name, code }
+        }),
+        // 3.12 changed files
+        filesForMypy.length !== 0 && cliSequence(async ($) => {
+            const name = 'mypy-3.12-changed'
+            await $`echo ${`Starting mypy for changed files (python 3.12)`}`
+            const { code } = await $`${mypyPath} --python-version ${"3.12"} --no-error-summary ${filesForMypy}`.noThrow()
+            await $`echo ${(code === 0 ? green(`${name} passed!`) : red(`${name} failed!`))}`
+            return { name, code }
+        }),
+        // 3.10 remaining files
+        !resume && remainingForMypy.length !== 0 && cliSequence(async ($) => {
+            const name = 'mypy-3.10-remaining'
+            await $`echo ${`Starting mypy for non-changed files (python 3.10)`}`
+            const { code } = await $`${mypyPath} --python-version ${"3.10"} --no-error-summary ${remainingForMypy}`.noThrow()
+            await $`echo ${(code === 0 ? green(`${name} passed!`) : red(`${name} failed!`))}`
+            return { name, code }
+        }),
+        // 3.12 remaining files
+        !resume && remainingForMypy.length !== 0 && cliSequence(async ($) => {
+            const name = 'mypy-3.12-remaining'
+            await $`echo ${`Starting mypy for non-changed files (python 3.12)`}`
+            const { code } = await $`${mypyPath} --python-version ${"3.12"} --no-error-summary ${remainingForMypy}`.noThrow()
+            await $`echo ${(code === 0 ? green(`${name} passed!`) : red(`${name} failed!`))}`
+            return { name, code }
+        }),
+    ])
+
+    // Transform cliSequence results: { retVal, stdout, stderr } -> { name, code, output }
+    return mypyResults
+        .filter(Boolean)
+        .map(result => ({ ...result.retVal, output: result.stdout + result.stderr }))
+}
+
+async function runRelevantTests({ testData, cache, pythonCmd, testMarkerExpr, claude, hasClaudePromise }) {
+    const {
+        sortedRelevantTests,
+    } = await testData
+
+    if (sortedRelevantTests.length === 0) {
+        return { failed: false }
+    }
+
+    console.log(`\n${(`Starting relevant tests (changed files)`)}`)
+
+    let relevantTestFailed = false
+    let testIndex = 0
+    while (testIndex < sortedRelevantTests.length) {
+        const test = sortedRelevantTests[testIndex]
+        testIndex++
+        const progress = `${testIndex}/${sortedRelevantTests.length}`
+
+        const start = performance.now()
+        const pytestArgs = [
+            pythonCmd,
+            "-m", "pytest",
+            "-o", "addopts=-v -p no:warnings -ra --color=yes",
+            "-r", "s",
+        ]
+        if (testMarkerExpr) {
+            pytestArgs.push("-m", testMarkerExpr)
+        }
+        pytestArgs.push(test.nodeid)
+        const result = await $`${pytestArgs}`.stdout("piped").stderr("piped").noThrow()
+        const wallDuration = (performance.now() - start) / 1000
+
+        const status = result.code === 0 ? 'pass' : 'fail'
+
+        cache.tests[test.nodeid] = {
+            status,
+            wall_duration_seconds: wallDuration,
+            last_run: new Date().toISOString(),
+            last_success_wall_duration: status === 'pass' ? wallDuration : cache.tests[test.nodeid]?.last_success_wall_duration,
+            markers: test.markers,
+        }
+        saveCache(checkPrCachePath, cache).catch(err=>console.error)
+
+        if (result.code !== 0) {
+            relevantTestFailed = true
+            console.log(red`\nRelevant test failed: ${test.nodeid}`)
+            printOutput(result)
+
+            if (claude) {
+                const hasClaude = await hasClaudePromise
+                if (!hasClaude) {
+                    console.log(red`Claude is not available. Please install it to use --claude flag.`)
+                } else {
+                    // Fix and retry immediately
+                    console.log(yellow`\nAttempting to fix test with Claude...`)
+                    const output = normalizePipeOutput(result.stdout) + normalizePipeOutput(result.stderr)
+                    const allowedTools = "Task,Edit,Read,Update,Write,WebFetch,WebSearch,Glob,Grep,Write(./**/*),Bash(*)"
+                    const prompt = `Please fix this failing test:\n\nTest: ${test.nodeid}\n\nOutput:\n${output}\n\nAfter you update the code, please run: ${FileSystem.thisFile} --only '[tests1]' --resume`
+                    await $$`claude --allowedTools ${allowedTools} -p ${prompt}`
+                    console.log(cyan`\nRe-running test after Claude fixes...`)
+
+                    // Retry the same test
+                    testIndex--
+                    relevantTestFailed = false
+                    continue
+                }
+            }
+        } else {
+            console.log(green(`\nRan ${cyan(progress)+""}: ${test.nodeid} ✓ passed (${wallDuration.toFixed(2)}s)`))
+        }
+    }
+    if (relevantTestFailed) {
+        console.log(red`\nSome tests failed!`)
+        return { failed: true }
+    }
+
+    console.log(green`\nAll relevant tests passed!`)
+    return { failed: false }
+}
+
+async function runRemainingTests({ testData, cache, pythonCmd, testMarkerExpr }) {
+    const {
+        sortedRemainingTests,
+    } = await testData
+
+    if (sortedRemainingTests.length === 0) {
+        return { failed: false }
+    }
+
+    console.log(`\n${cyan`Starting remaining tests (bulk)`}`)
+
+    const testNodeids = sortedRemainingTests.map(t => t.nodeid)
+
+    console.log(`Running ${cyan(testNodeids.length)} tests in bulk...`)
+
+    const args = [
+        pythonCmd,
+        "-m", "pytest",
+        "-v",
+        "-p", "no:warnings",
+        "-ra",
+        "--color=yes",
+        "-r", "s",
+    ]
+
+    if (testMarkerExpr) {
+        args.push("-m", testMarkerExpr)
+    }
+
+    args.push(...testNodeids)
+
+    const start = performance.now()
+    const result = await $$`${args}`
+    const wallDuration = (performance.now() - start) / 1000
+
+    if (result.code !== 0) {
+        console.log(red`\nSome remaining tests failed!`)
+        printOutput(result)
+        return { failed: true, output: normalizePipeOutput(result.stdout) + normalizePipeOutput(result.stderr) }
+    }
+
+    console.log(green`\nAll remaining tests passed! (${wallDuration.toFixed(2)}s)`)
+    return { failed: false }
+}
+
+// Main logic
+async function main({ resume, claude, only, tests: testMarkers, printCliCommands }) {
+    if (printCliCommands) {
+        dax.$.setPrintCommand(true)
+    }
+
+    // Determine what stages to run
+    // Normalize 'only' to always be an array
+    const onlyArray = Array.isArray(only) ? only : (only ? [only] : [])
+    const stagesSet = new Set(onlyArray.length > 0 ? onlyArray : ['gen', 'checks', 'mypy', 'tests1', 'tests2'])
+    const shouldRun = (stage) => stagesSet.has(stage)
+    const venvPython = `${repoRoot}/.venv/bin/python`
+
+    // Start background promises for system checks
+    console.log(cyan`# Initializing...`)
+
+    if (shouldRun('tests1') || shouldRun('tests2')) {
+        var collectTestsPromise = collectTests()
+    }
+    const cachePromise = loadCache(checkPrCachePath, {
+        tests: {},
+        commands: {},
+        last_run: { stage: null, completed: [] }
+    })
+    const venvExistsPromise = FileSystem.exists(venvPython)
+    let uvInstallPromise = $$`time uv sync --frozen --all-extras --no-extra dds --no-extra cuda | head -n100`.spawn()
+    const parsedTomlPromise = getProjectToml()
+    const changedFilesPromise = getChangedFiles()
+    const hasCudaPromise = new Promise(async (resolve)=>resolve((await hasCommand("nvidia-smi")) || (await hasCommand("nvcc"))))
+    const hasRosPromise = new Promise(async (resolve)=>resolve((await hasCommand("ros2")) || (Deno.env.get("ROS_DISTRO") != null) || (Deno.env.get("ROS_VERSION") != null)))
+    const hasClaudePromise = hasCommand("claude")
+    const mypyExcludePromise = (async () => {
+        const parsedToml = await parsedTomlPromise
+        const mypyExclude = parsedToml?.tool?.mypy?.exclude
+        return mypyExclude ? new RegExp(mypyExclude) : /(^|\/)test_[^/]+\.py$/
+    })()
+
+    // Generation stage (ruff, all_blueprints, uv lock)
+    const { filesThatExist, testFiles: changedTestFiles } = await changedFilesPromise
+    // console.debug(`changes that are present:`,filesThatExist)
+    // console.debug(`changedTestFiles is:`,changedTestFiles)
+    
+    if (shouldRun('gen')) {
+        console.log(`\n${cyan`# Stage: Generation (ruff, blueprints, uv lock)`}`)
+        
+        const pytestPromise = $$`pytest ${repoRoot}/dimos/robot/test_all_blueprints_generation.py &>/dev/null`.then()
+
+        await Promise.all([
+            ((async ()=>{
+                await $$`uv lock`
+                console.log(green(`- uv lock done`))
+            })()),
+            // ((async ()=>{
+            //     // Ruff formatting
+            //     await $`ruff check --unsafe-fixes --fix ${filesThatExist.filter(each => each.endsWith(".py"))}`
+            //     console.log(green(`- ruff check done`))
+            // })()),
+        ])
+        
+        // 
+        // Blueprint generation
+        // 
+
+        if ((await pytestPromise).code != 0) {
+            console.debug(`(await pytestPromise) is:`,(await pytestPromise))
+            console.log(`generating all_blueprints`)
+            const stashWorked = await $$`git stash`.text("combined") != "No local changes to save"
+            await $$`pytest ${repoRoot}/dimos/robot/test_all_blueprints_generation.py &>/dev/null`.stdout("null").stderr("null")
+            await $$`git add ${repoRoot}/dimos/robot/all_blueprints.py`.stdout("null").stderr("null")
+            await $$`git commit -m ${`all_blueprints update`}`.stdout("null").stderr("null")
+            if (stashWorked) {
+                await $$`git stash pop`.stdout("null").stderr("null")
+            }
+        }
+        console.log(green(`- all_blueprints check done`))
+    }
+
+    if (shouldRun('checks') || shouldRun('mypy') || shouldRun('tests1') || shouldRun('tests2')) {
+        // Prepare all data for parallel execution
+        console.log(`\n${cyan`# Stage: Parallel Execution (checks, mypy, tests)`}`)
+    }
+
+    // Kick off git ls-files as a promise (don't await yet)
+    const allPythonPromise = $`git -C ${repoRoot} ls-files -co --exclude-standard -z -- ${"*.py"}`.text("combined")
+
+    const testData = (shouldRun('tests1') || shouldRun('tests2')) && new Promise(async (resolve)=>{
+        let sortedRelevantTests = []
+        let sortedRemainingTests = []
+        let testMarkerExpr = ""
+
+        // Use the same default exclusions as pyproject.toml addopts
+        // -m 'not (vis or exclude or tool or lcm or ros or heavy or gpu or module or e2e or integration or neverending or mujoco)'
+        const excludeMarkers = [ "neverending", "asyncio", ]
+
+        // Note: We keep these in the exclude list regardless of system capabilities
+        // If the user wants to run them, they can use --tests flag
+        const [hasCuda, hasRos] = await Promise.all([hasCudaPromise, hasRosPromise])
+        if (!hasCuda) {
+            console.log(yellow`I'll skip cuda tests because cuda is not installed`)
+        }
+        if (!hasRos) {
+            console.log(yellow`I'll skip ros tests because ros is not installed`)
+        }
+
+        // Parse test markers from CLI
+        let includeMarkers = []
+        if (testMarkers.length > 0) {
+            includeMarkers = testMarkers
+        }
+
+        // Build pytest marker expression
+        // Format: "not (marker1 or marker2 or ...) and (include1 or include2 or ...)"
+        let markerExpr = ""
+        const parts = []
+
+        // Exclude markers (e.g., "not (vis or exclude or tool or ...)")
+        if (excludeMarkers.length > 0) {
+            const excludeExpr = excludeMarkers.join(" or ")
+            parts.push(`not (${excludeExpr})`)
+        }
+
+        // Include markers (e.g., "tool or gpu")
+        if (includeMarkers.length > 0) {
+            const includeExpr = includeMarkers.join(" or ")
+            parts.push(`(${includeExpr})`)
+        }
+
+        markerExpr = parts.join(" and ")
+
+        // Save marker expression for pytest
+        testMarkerExpr = markerExpr
+
+        // Collect all tests (don't filter by markers here - let pytest do it)
+        const collection = await collectTestsPromise
+        const allTests = collection.items || []
+
+        // Separate relevant tests (changed files) and remaining tests
+        const changedTestSet = new Set(changedTestFiles)
+        const relevantTests = []
+        const remainingTests = []
+
+        for (const test of allTests) {
+            const testFile = test.nodeid.split("::")[0]
+            const testPath = `${repoRoot}/${testFile}`
+
+            // Skip if already succeeded and --resume is set
+            if (resume && (await cachePromise).tests[test.nodeid]?.status === 'pass') {
+                continue
+            }
+
+            if (changedTestSet.has(testPath)) {
+                relevantTests.push(test)
+            } else {
+                remainingTests.push(test)
+            }
+        }
+
+        // Sort tests by last success duration (fastest first)
+        const cache = (await cachePromise)
+        const sortByDuration = (tests) => {
+            const withDuration = []
+            const withoutDuration = []
+
+            for (const test of tests) {
+                const cached = cache.tests[test.nodeid]
+                const duration = cached?.last_success_wall_duration ?? cached?.wall_duration_seconds ?? cached?.last_success_duration ?? cached?.duration_seconds
+                if (typeof duration === 'number' && Number.isFinite(duration)) {
+                    withDuration.push({ test, duration })
+                } else {
+                    withoutDuration.push({ test, duration: Infinity })
+                }
+            }
+
+            // Sort failed tests first (from last run), then by duration
+            const failedFirst = []
+            const passedTests = []
+
+            for (const item of [...withDuration, ...withoutDuration]) {
+                if (cache.tests[item.test.nodeid]?.status === 'fail') {
+                    failedFirst.push(item)
+                } else {
+                    passedTests.push(item)
+                }
+            }
+
+            failedFirst.sort((a, b) => a.duration - b.duration)
+            passedTests.sort((a, b) => a.duration - b.duration)
+
+            return [...failedFirst, ...passedTests].map(item => item.test)
+        }
+
+        sortedRelevantTests = sortByDuration(relevantTests)
+        sortedRemainingTests = sortByDuration(remainingTests)
+
+        const totalCollected = allTests.length
+        const totalToRun = relevantTests.length + remainingTests.length
+
+        console.log(`\nTest statistics:`)
+        console.log(`  Total collected: ${cyan(totalCollected)}`)
+        if (excludeMarkers.length > 0) {
+            console.log(`  Excluding markers: ${yellow(excludeMarkers.join(", "))}`)
+        }
+        if (includeMarkers.length > 0) {
+            console.log(`  Including markers: ${cyan(includeMarkers.join(", "))}`)
+        }
+        if (markerExpr) {
+            console.log(`  Marker expression: ${magenta(markerExpr)}`)
+        }
+        if (resume) {
+            const skippedByResume = totalCollected - totalToRun
+            if (skippedByResume > 0) {
+                console.log(`  Skipped (--resume, already passed): ${yellow(skippedByResume)}`)
+            }
+        }
+        console.log(`  Tests to run: ${cyan(totalToRun)} (${relevantTests.length} relevant, ${remainingTests.length} remaining)`)
+        
+        resolve({
+            sortedRelevantTests,
+            sortedRemainingTests,
+            testMarkerExpr,
+            includeMarkers,
+        })
+    })
+
+
+    const pythonCmd = (await venvExistsPromise) ? venvPython : "python"
+
+    // Run everything in parallel with Promise.all (4 parallel tasks)
+    const [relevantTestsResult, remainingTestsResult, mypyResult, checksResult, ] = await Promise.all([
+        // Task: Relevant tests (one by one, fastest first)
+        shouldRun('tests1') && (async () => {
+            console.log(`starting test1`)
+            const cache = await cachePromise
+            const { testMarkerExpr } = await testData
+
+            const result = await runRelevantTests({
+                testData,
+                cache,
+                pythonCmd,
+                testMarkerExpr,
+                claude,
+                hasClaudePromise,
+            })
+
+            if (result.failed) {
+                Deno.exit(1) // Exit immediately if relevant test fails
+            }
+
+            return result
+        })(),
+
+        // Task: Remaining tests (bulk, all at once)
+        shouldRun('tests2') && (async () => {
+            console.log(`starting test2`)
+            const cache = await cachePromise
+            const { testMarkerExpr } = await testData
+
+            // Run tests with retry loop for Claude fixes
+            while (true) {
+                const result = await runRemainingTests({
+                    testData,
+                    cache,
+                    pythonCmd,
+                    testMarkerExpr,
+                })
+
+                if (!result.failed) {
+                    return result
+                }
+
+                // If not using --claude flag, return failures
+                if (!claude) {
+                    return result
+                }
+
+                // Attempt to fix with Claude
+                const hasClaude = await hasClaudePromise
+                if (!hasClaude) {
+                    console.log(red(`Claude is not available. Please install it to use --claude flag.`))
+                    return result
+                }
+
+                console.log(yellow(`\nAttempting to fix failed tests with Claude...`))
+                const allowedTools = "Task,Edit,Read,Update,Write,WebFetch,WebSearch,Glob,Grep,Write(./**/*),Bash(*)"
+                const prompt = `Please fix these failing tests:\n\nOutput:\n${result.output}\n\nAfter you update the code, please run: ${FileSystem.thisFile} --only '[tests2]' --resume`
+                await $$`claude --allowedTools ${allowedTools} -p ${prompt}`
+                console.log(cyan(`\nRe-running tests after Claude fixes...`))
+                // Loop continues to re-run tests
+            }
+        })(),
+
+        // Task: Mypy type checking (4 parallel mypy checks)
+        shouldRun('mypy') && (async () => {
+            // must install exact versions to avoid conflicts
+            await uvInstallPromise
+            console.log(`starting mypy`)
+
+            // Prepare mypy data (runs in parallel with other tasks)
+            const mypyExcludeRegex = await mypyExcludePromise
+
+            // Get all Python files
+            const allPython = (await allPythonPromise)
+                .split(/\0+/)
+                .filter(Boolean)
+
+            // Run mypy checks with retry loop for Claude fixes
+            while (true) {
+                const mypyResult = await runMypyChecks({
+                    resume,
+                    filesThatExist,
+                    mypyExcludeRegex,
+                    allPython,
+                })
+
+                const mypyFailures = mypyResult.filter(r => r.name.startsWith('mypy-') && r.code !== 0)
+
+                if (mypyFailures.length === 0) {
+                    return mypyResult
+                }
+
+                // If not using --claude flag, return failures
+                if (!claude) {
+                    return mypyResult
+                }
+
+                // Attempt to fix with Claude
+                const hasClaude = await hasClaudePromise
+                if (!hasClaude) {
+                    console.log(red(`Claude is not available. Please install it to use --claude flag.`))
+                    return mypyResult
+                }
+
+                console.log(yellow`\nAttempting to fix mypy errors with Claude...`)
+                const mypyErrors = mypyFailures.map(f => `${f.name}:\n${f.output || "(no output)"}`).join("\n\n")
+                const allowedTools = "Task,Edit,Read,Update,Write,WebFetch,WebSearch,Glob,Grep,Write(./**/*),Bash(*)"
+                const prompt = `Please fix these mypy errors:\n\n${mypyErrors}\n\nAfter you update the code, please run: ${FileSystem.thisFile} --only '[mypy]'`
+                await $$`claude --allowedTools ${allowedTools} -p ${prompt}`
+                console.log(cyan`\nRe-checking type hints after Claude fixes...`)
+                // Loop continues to re-run mypy
+            }
+        })(),
+
+        // Task: Pre-commit checks
+        shouldRun('checks') && (async () => {
+            return await $$`pre-commit run --all-files`
+        })(),
+    ])
+
+    // Handle results after all parallel tasks complete
+
+    // Combine all check/mypy results
+    const allCheckResults = [
+        checksResult,
+        ...mypyResult,
+    ]
+
+    // Exit if tests failed (tests1 already exits early, this is for tests2)
+    if (remainingTestsResult?.failed) {
+        Deno.exit(1)
+    }
+
+    console.log(`\n${green(`# All checks passed! ✓`)}`)
+}
+
+try {
+    await main(cliParsedArgs.simplifiedNames)
+} catch (error) {
+    console.error(red(`\nError: ${error.message}`))
+    if (error.stack) {
+        console.error(error.stack)
+    }
+    Deno.exit(1)
+}

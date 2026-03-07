@@ -1,0 +1,5 @@
+if [ "$(uname)" = "Darwin" ]; then
+    docker run --rm -it -v "$PWD:/workspace" -w /workspace -e CI=1 ghcr.io/dimensionalos/ros-dev:dev /entrypoint.sh bash -c "MYPYPATH=/opt/ros/humble/lib/python3.10/site-packages mypy dimos"
+else
+    docker run --rm -it -v "$PWD:/workspace" -w /workspace --platform linux/amd64 -e CI=1 ghcr.io/dimensionalos/ros-dev:dev /entrypoint.sh bash -c "MYPYPATH=/opt/ros/humble/lib/python3.10/site-packages mypy dimos"
+fi

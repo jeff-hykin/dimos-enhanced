@@ -1,0 +1,29 @@
+# questionable 
+langchain_core
+openai
+pygame
+matplotlib
+pandas 
+scipy
+beartype
+rich
+dash
+pygments
+prompt_toolkit
+jedi
+open3d
+rerun
+langchain
+torch
+transformers
+
+# understood
+uvicorn
+foxglove_bridge
+foxglove_websocket
+dask
+asyncio
+numpy
+flask
+IPython
+reactivex
