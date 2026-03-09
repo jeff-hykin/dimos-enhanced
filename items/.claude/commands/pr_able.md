@@ -1,26 +1,29 @@
 # PR-able Review Skill
 
-Follow these steps in order:
+We are trying to make sure this branch is high quality and ready to be merged into `dev`. Follow these steps in order:
 
-## Step 1: Run pre-commit checks
+## Step 1: Understand the current branch
 
-Run `pre-commit run --all-files` on the repo. If any hooks fail and auto-fix files, stage those fixes. If hooks still fail after auto-fix, note the failures for the review.
+1.Try to pull in the latest dev (`git pull origin dev`). If there are conflicts, resolve them in a smart way and commit the changes.
 
-## Step 2: Gather all changes against dev
+2. If you don't already fully understand this feature branch (if its not in your context) then do the following:
+- Then collect the full diff of all changes (unstaged, staged, and committed) compared to the `dev` branch:
 
-Collect the full diff of all changes (unstaged, staged, and committed) compared to the `dev` branch:
-
-```
+```bash
 git diff dev...HEAD
 git diff dev
 git diff --cached
 ```
 
-Combine these to understand the complete set of changes that would go into a PR against `dev`.
+Use that to understand what feature and possible side effects this branch is working on.
+
+## Step 2: Sanity Check the Branch
+
+Run `bin/ci-check` on the repo. If anything fails fix it, but check for auto-changed files and stage those fixes. If there are any relevant/obvious (but selective) tests to run, run them and make sure they pass. If they don't, then fix them. 
 
 ## Step 3: Critical code review
 
-Perform a thorough, critical review of ALL changes from Step 2. Evaluate:
+Perform a thorough, critical review of ALL changes from Step 1. Evaluate:
 
 - Correctness: logic errors, off-by-one, race conditions, null/None handling
 - Security: injection, credentials, unsafe operations
@@ -67,7 +70,7 @@ For each issue the user selected:
 2. Run the most relevant tests for that fix (e.g. if fixing `dimos/core/worker.py`, run tests in `tests/core/` or related test files)
 3. If tests fail, debug and iterate until they pass
 
-After all fixes are applied, run `pre-commit run --all-files` one final time to ensure everything is clean.
+After all fixes are applied, run `bin/ci-fast` which will both re-run basic checks as well as the testing suite. Keep running and debugging until it passes.
 
 ## Step 6: Status report
 
