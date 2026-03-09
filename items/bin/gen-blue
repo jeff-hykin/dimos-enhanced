@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
 # Regenerate dimos/robot/all_blueprints.py
-exec pytest dimos/robot/test_all_blueprints_generation.py "$@"
+exec uv run pytest dimos/robot/test_all_blueprints_generation.py "$@"

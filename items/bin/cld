@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+TOOLS="Task,Edit,Read,Update,Write,WebFetch,WebSearch,Glob,Grep,Write(./**/*),Bash(*)"
+
+if [ "$1" = "--resume" ]; then
+    shift
+    claude --allowedTools "$TOOLS" -c "$@"
+elif [ -z "$*" ]; then
+    claude --allowedTools "$TOOLS"
+else
+    claude --allowedTools "$TOOLS" -p "$@"
+fi
