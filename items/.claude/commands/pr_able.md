@@ -88,3 +88,39 @@ Present a final summary:
 
 ### Updated PR-able Rating: X/10
 ```
+
+
+## Step 7: Template
+
+Then minimally fill out the following template and open the filled-out version. Make sure the file is git-ignored or put in /tmp
+
+```
+## Problem
+
+<!-- What feature are you adding, or what is broken/missing/sub-optimal? -->
+<!-- Context, symptoms, motivation. Link the issue. -->
+
+## Solution
+
+<!-- What you changed and why this approach -->
+<!-- Key design decisions / tradeoffs -->
+<!-- Keep it high-signal; deep planning belongs in the issue. -->
+
+## Breaking Changes
+
+<!-- Write "None" if not applicable -->
+
+<!-- If applicable:
+- what breaks
+- who is affected
+- migration steps
+-->
+
+## How to Test
+
+<!-- This should be command line commands assuming all normal dimos pre-reqs are installed -->
+
+## Contributor License Agreement
+
+- [ ] I have read and approved the [CLA](https://github.com/dimensionalOS/dimos/blob/main/CLA.md).
+```
