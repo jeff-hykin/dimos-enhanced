@@ -7,11 +7,17 @@ We are trying to make sure this branch is high quality and ready to be merged in
 1.Try to pull in the latest dev (`git pull origin dev`). If there are conflicts, resolve them in a smart way and commit the changes.
 
 2. If you don't already fully understand this feature branch (if its not in your context) then do the following:
-- Then collect the full diff of all changes (unstaged, staged, and committed) compared to the `dev` branch:
+- Collect the diff of this branch as it would appear in a PR against `dev`. This requires fetching the latest `origin/dev` and diffing from the merge-base:
 
 ```bash
-git diff dev...HEAD
-git diff dev
+git fetch origin dev --quiet
+git diff $(git merge-base origin/dev HEAD)..HEAD
+```
+
+- Also check for any uncommitted local changes:
+
+```bash
+git diff
 git diff --cached
 ```
 
