@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Show the diff as if the current branch was going to be merged into dev.
+# Uses the merge-base against origin/dev (fetched fresh) so the diff
+# matches what GitHub would show on a PR.
+set -euo pipefail
+
+git fetch origin dev --quiet
+base=$(git merge-base origin/dev HEAD)
+git diff "$base"..HEAD "$@"
