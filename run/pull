@@ -8,10 +8,9 @@ const itemsDir = join(enhanceDir, "items")
 const parentDir = dirname(enhanceDir) // the repo that contains .ignore.enhance
 
 // Pull latest from remote
-try {
-    await $`git -C ${enhanceDir} pull --rebase`.noThrow()
-} catch {
-    console.log("(no remote history yet, skipping pull)")
+const pullResult = await $`git -C ${enhanceDir} pull`.noThrow()
+if (pullResult.code !== 0) {
+    Deno.exit(pullResult.code)
 }
 
 // Walk items/ and create symlinks in the parent repo, collecting all leaf file paths
