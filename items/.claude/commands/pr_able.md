@@ -25,7 +25,9 @@ Use that to understand what feature and possible side effects this branch is wor
 
 ## Step 2: Sanity Check the Branch
 
-Run `bin/ci-check` on the repo. If anything fails fix it, but check for auto-changed files and stage those fixes. If there are any relevant/obvious (but selective) tests to run, run them and make sure they pass. If they don't, then fix them. 
+Run `bin/ci-check` on the repo. If anything fails fix it, but check for auto-changed files and stage those fixes. If there are any relevant/obvious (but selective) tests to run, run them and make sure they pass. If they don't, then fix them.
+
+Be EXTREMELY SKEPTICAL of so called "pre-existing failures". If there is a pre-existing failure that is a HUGE deal and we need to address that before continuing with the PR. Figure out exactly why its happening.
 
 ## Step 3: Critical code review
 
