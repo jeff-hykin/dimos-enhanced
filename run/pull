@@ -17,8 +17,23 @@ if (pullResult.code !== 0) {
 const leafPaths = []
 await linkItem(itemsDir, parentDir)
 
+// Resolve the actual git dir (handles worktrees where .git is a file)
+let gitDir = join(parentDir, ".git")
+try {
+    const stat = await Deno.stat(gitDir)
+    if (!stat.isDirectory) {
+        // .git is a file (worktree) — read the gitdir pointer
+        const content = await Deno.readTextFile(gitDir)
+        const match = content.match(/gitdir:\s*(.+)/)
+        if (match) {
+            const resolved = match[1].trim()
+            gitDir = resolved.startsWith("/") ? resolved : resolve(parentDir, resolved)
+        }
+    }
+} catch { /* .git doesn't exist at all */ }
+
 // Ensure every leaf file path is git-excluded
-const excludePath = join(parentDir, ".git", "info", "exclude")
+const excludePath = join(gitDir, "info", "exclude")
 let excludeContent = ""
 try {
     excludeContent = await Deno.readTextFile(excludePath)
@@ -32,6 +47,8 @@ for (const relPath of leafPaths) {
     }
 }
 if (changed) {
+    // Ensure info/ directory exists
+    try { await Deno.mkdir(join(gitDir, "info"), { recursive: true }) } catch { /* exists */ }
     await Deno.writeTextFile(excludePath, excludeContent.replace(/\n{3,}/g, "\n\n") + "\n")
     console.log(`Updated ${excludePath}`)
 }
