@@ -10,3 +10,4 @@ globs: ["**/*.py"]
 - Don't hardcode ports or URLs — use `GlobalConfig` constants.
 - Run `ruff check --fix && ruff format` after every Python change.
 - Prefix manual test scripts with `demo_` to exclude from pytest collection.
+- No magic numbers. If the reason for a numeric literal isn't immediately obvious, assign it to a named variable or constant. Numbers like `0`, `1`, `-1`, `2` (halving/doubling), `3.14159`, `100` (percent), `1000` (ms↔s) are usually fine inline. When in doubt, name it.
