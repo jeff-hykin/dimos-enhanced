@@ -121,6 +121,8 @@ For each selected issue:
 3. Run the most relevant tests
 4. If tests fail, debug and iterate
 
+**Mypy rule:** When fixing mypy errors, heavily avoid using `# type: ignore` comments. Instead, fix the actual type issue — add proper annotations, narrow types, use casts only when truly justified, or refactor the code. Suppressing mypy with `# type: ignore` hides real bugs and defeats the purpose of type checking.
+
 After all fixes, run `bin/ci-fast`. Keep iterating until it passes.
 
 ## Step 7: Status report
