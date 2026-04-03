@@ -1,0 +1,39 @@
+#!/usr/bin/env python3
+"""Listen for one /odometry message on LCM, print position and orientation, then exit.
+
+Usage:
+    bin/get_pos
+"""
+
+import lcm  # type: ignore[import-untyped]
+
+from dimos.msgs.nav_msgs.Odometry import Odometry
+
+TOPIC = "/odometry#nav_msgs.Odometry"
+
+
+def main() -> None:
+    lc = lcm.LCM()
+
+    got_msg = False
+
+    def handler(_channel: str, data: bytes) -> None:
+        nonlocal got_msg
+        odom = Odometry.lcm_decode(data)
+        p = odom.pose.position
+        q = odom.pose.orientation
+        v = odom.twist.twist.linear
+        print(f"pos:  ({p.x:.3f}, {p.y:.3f}, {p.z:.3f})")
+        print(f"quat: ({q.x:.3f}, {q.y:.3f}, {q.z:.3f}, {q.w:.3f})")
+        print(f"vel:  ({v.x:.3f}, {v.y:.3f}, {v.z:.3f})")
+        got_msg = True
+
+    lc.subscribe(TOPIC, handler)
+
+    print(f"Waiting for odometry on {TOPIC}...")
+    while not got_msg:
+        lc.handle()
+
+
+if __name__ == "__main__":
+    main()
