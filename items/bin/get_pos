@@ -1,37 +1,39 @@
 #!/usr/bin/env python3
-"""Listen for one /odometry message on LCM, print position and orientation, then exit.
+"""Stream /odometry at ~5Hz with timestamps.
 
 Usage:
     bin/get_pos
 """
+
+import time
 
 import lcm  # type: ignore[import-untyped]
 
 from dimos.msgs.nav_msgs.Odometry import Odometry
 
 TOPIC = "/odometry#nav_msgs.Odometry"
+INTERVAL = 0.2  # 5 Hz
 
 
 def main() -> None:
     lc = lcm.LCM()
-
-    got_msg = False
+    last_print = 0.0
 
     def handler(_channel: str, data: bytes) -> None:
-        nonlocal got_msg
+        nonlocal last_print
+        now = time.time()
+        if now - last_print < INTERVAL:
+            return
+        last_print = now
         odom = Odometry.lcm_decode(data)
         p = odom.pose.position
-        q = odom.pose.orientation
         v = odom.twist.twist.linear
-        print(f"pos:  ({p.x:.3f}, {p.y:.3f}, {p.z:.3f})")
-        print(f"quat: ({q.x:.3f}, {q.y:.3f}, {q.z:.3f}, {q.w:.3f})")
-        print(f"vel:  ({v.x:.3f}, {v.y:.3f}, {v.z:.3f})")
-        got_msg = True
+        t = now % 1000  # modulus timestamp
+        print(f"[{t:07.3f}] pos=({p.x:+8.3f}, {p.y:+8.3f}, {p.z:+8.3f})  vel=({v.x:+6.3f}, {v.y:+6.3f}, {v.z:+6.3f})")
 
     lc.subscribe(TOPIC, handler)
 
-    print(f"Waiting for odometry on {TOPIC}...")
-    while not got_msg:
+    while True:
         lc.handle()
 
 

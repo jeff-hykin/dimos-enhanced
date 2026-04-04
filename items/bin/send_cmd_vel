@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Publish a Twist on /tele_cmd_vel via LCM.
+"""Publish a TwistDuration on /agent_cmd_vel via LCM.
 
 Usage:
-    bin/send_cmd_vel <linear_x> <linear_y> <angular_z>
-    bin/send_cmd_vel 0.5 0 0        # forward
-    bin/send_cmd_vel 0 0 0.5         # turn left
-    bin/send_cmd_vel 0 0 0           # stop
+    bin/send_cmd_vel <linear_x> <linear_y> <angular_z> [duration]
+    bin/send_cmd_vel 0.5 0 0          # forward for 1s (default)
+    bin/send_cmd_vel 0 0 0.5 2.0      # turn left for 2s
+    bin/send_cmd_vel 0 0 0            # stop (zero twist, no duration)
 """
 
 import sys
@@ -13,29 +13,38 @@ import time
 
 import lcm  # type: ignore[import-untyped]
 
-from dimos.msgs.geometry_msgs.Twist import Twist
+from dimos.msgs.geometry_msgs.TwistDuration import TwistDuration
 
-TOPIC = "/tele_cmd_vel#geometry_msgs.Twist"
+TOPIC = "/agent_cmd_vel#geometry_msgs.TwistDuration"
 
 
 def main() -> None:
     if len(sys.argv) < 4:
-        print(f"Usage: {sys.argv[0]} <linear_x> <linear_y> <angular_z>")
-        print("  e.g. 0.5 0 0  (forward)  |  0 0 0.5  (turn left)  |  0 0 0  (stop)")
+        print(f"Usage: {sys.argv[0]} <linear_x> <linear_y> <angular_z> [duration]")
+        print("  e.g. 0.5 0 0        (forward 1s)")
+        print("       0 0 0.5 2.0    (turn left 2s)")
+        print("       0 0 0          (stop)")
         sys.exit(1)
 
     lx, ly, az = float(sys.argv[1]), float(sys.argv[2]), float(sys.argv[3])
-    twist = Twist([lx, ly, 0], [0, 0, az])
+    duration = float(sys.argv[4]) if len(sys.argv) > 4 else 1.0
+
+    msg = TwistDuration(linear=[lx, ly, 0], angular=[0, 0, az], duration=duration)
 
     lc = lcm.LCM()
-    data = twist.lcm_encode()
+    data = msg.lcm_encode()
 
     # Send a short burst so the mux registers it
     for _ in range(5):
         lc.publish(TOPIC, data)
         time.sleep(0.05)
 
-    print(f"Published Twist(linear=[{lx}, {ly}, 0], angular=[0, 0, {az}]) on {TOPIC}")
+    t = time.time() % 1000
+    print(
+        f"[{t:07.3f}] Published TwistDuration("
+        f"linear=[{lx}, {ly}, 0], angular=[0, 0, {az}], "
+        f"duration={duration}s) on {TOPIC}"
+    )
 
 
 if __name__ == "__main__":
