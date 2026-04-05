@@ -13,55 +13,55 @@ Data is stored as Apache Arrow record batches in streaming chunks.
 
 ## Available Tools
 
-### 1. Python helper: `.claude/tools/rrd_inspect.py`
+### 1. Python helper: `.claude/skills/rrd/tools/rrd_inspect.py`
 
 **Basic inspection:**
 ```bash
 # List all entity paths with row counts and component types
-python .claude/tools/rrd_inspect.py entities <file.rrd>
+python .claude/skills/rrd/tools/rrd_inspect.py entities <file.rrd>
 
 # Show recording metadata (store ID, SDK version, total stats)
-python .claude/tools/rrd_inspect.py info <file.rrd>
+python .claude/skills/rrd/tools/rrd_inspect.py info <file.rrd>
 
 # Show full schema organized by archetype
-python .claude/tools/rrd_inspect.py schema <file.rrd>
+python .claude/skills/rrd/tools/rrd_inspect.py schema <file.rrd>
 
 # Show transform frame hierarchy
-python .claude/tools/rrd_inspect.py tf <file.rrd>
+python .claude/skills/rrd/tools/rrd_inspect.py tf <file.rrd>
 
 # Show logged warnings/errors
-python .claude/tools/rrd_inspect.py warnings <file.rrd>
+python .claude/skills/rrd/tools/rrd_inspect.py warnings <file.rrd>
 ```
 
 **Data inspection (YAML output):**
 ```bash
 # Show first/last N rows of an entity
-python .claude/tools/rrd_inspect.py head <file.rrd> -e /world/lidar -n 5
-python .claude/tools/rrd_inspect.py tail <file.rrd> -e /world/odom -n 10
+python .claude/skills/rrd/tools/rrd_inspect.py head <file.rrd> -e /world/lidar -n 5
+python .claude/skills/rrd/tools/rrd_inspect.py tail <file.rrd> -e /world/odom -n 10
 ```
 
 **Temporal analysis:**
 ```bash
 # Show publishing rate (Hz) and time range for all entities
-python .claude/tools/rrd_inspect.py rate <file.rrd>
+python .claude/skills/rrd/tools/rrd_inspect.py rate <file.rrd>
 
 # Detect gaps in publishing (default threshold: 1s)
-python .claude/tools/rrd_inspect.py gaps <file.rrd> -e /world/color_image -t 2.0
+python .claude/skills/rrd/tools/rrd_inspect.py gaps <file.rrd> -e /world/color_image -t 2.0
 ```
 
 **Cross-entity temporal queries:**
 ```bash
 # Get lidar data at the moment camera last published
-python .claude/tools/rrd_inspect.py at <file.rrd> -e /world/lidar --ref /world/color_image --ref-event last
+python .claude/skills/rrd/tools/rrd_inspect.py at <file.rrd> -e /world/lidar --ref /world/color_image --ref-event last
 
 # Get lidar data at the moment camera FIRST published
-python .claude/tools/rrd_inspect.py at <file.rrd> -e /world/lidar --ref /world/color_image --ref-event first
+python .claude/skills/rrd/tools/rrd_inspect.py at <file.rrd> -e /world/lidar --ref /world/color_image --ref-event first
 
 # Get odom data at a specific timestamp
-python .claude/tools/rrd_inspect.py at <file.rrd> -e /world/odom --time 2026-03-28T00:01:00
+python .claude/skills/rrd/tools/rrd_inspect.py at <file.rrd> -e /world/odom --time 2026-03-28T00:01:00
 
 # Get 3 nearest lidar readings to when camera stopped
-python .claude/tools/rrd_inspect.py at <file.rrd> -e /world/lidar --ref /world/color_image --ref-event last -n 3
+python .claude/skills/rrd/tools/rrd_inspect.py at <file.rrd> -e /world/lidar --ref /world/color_image --ref-event last -n 3
 ```
 
 ### 2. Rerun CLI (more detailed but verbose)
@@ -95,10 +95,10 @@ rerun <file.rrd>
 
 ```bash
 # Step 1: Find when camera stopped
-python .claude/tools/rrd_inspect.py tail <file.rrd> -e /world/color_image -n 1
+python .claude/skills/rrd/tools/rrd_inspect.py tail <file.rrd> -e /world/color_image -n 1
 
 # Step 2: Get the lidar data at that moment
-python .claude/tools/rrd_inspect.py at <file.rrd> -e /world/lidar --ref /world/color_image --ref-event last
+python .claude/skills/rrd/tools/rrd_inspect.py at <file.rrd> -e /world/lidar --ref /world/color_image --ref-event last
 
 # Or combined: the `at` command does the timestamp lookup for you
 ```
@@ -107,41 +107,41 @@ python .claude/tools/rrd_inspect.py at <file.rrd> -e /world/lidar --ref /world/c
 
 ```bash
 # Check rates for all entities
-python .claude/tools/rrd_inspect.py rate <file.rrd>
+python .claude/skills/rrd/tools/rrd_inspect.py rate <file.rrd>
 
 # Look for gaps specifically in camera data (flag anything > 2s)
-python .claude/tools/rrd_inspect.py gaps <file.rrd> -e /world/color_image -t 2.0
+python .claude/skills/rrd/tools/rrd_inspect.py gaps <file.rrd> -e /world/color_image -t 2.0
 ```
 
 ### "What was the robot doing when sensor X dropped out?"
 
 ```bash
 # Find the last message from the dropped sensor
-python .claude/tools/rrd_inspect.py tail <file.rrd> -e /world/<sensor> -n 1
+python .claude/skills/rrd/tools/rrd_inspect.py tail <file.rrd> -e /world/<sensor> -n 1
 
 # Query odom at that moment
-python .claude/tools/rrd_inspect.py at <file.rrd> -e /world/odom --ref /world/<sensor> --ref-event last
+python .claude/skills/rrd/tools/rrd_inspect.py at <file.rrd> -e /world/odom --ref /world/<sensor> --ref-event last
 
 # Query all TF frames at that moment
-python .claude/tools/rrd_inspect.py at <file.rrd> -e /world/tf/base_link --ref /world/<sensor> --ref-event last
+python .claude/skills/rrd/tools/rrd_inspect.py at <file.rrd> -e /world/tf/base_link --ref /world/<sensor> --ref-event last
 ```
 
 ### "Are camera and lidar timestamps aligned?"
 
 ```bash
 # Compare rates and time ranges
-python .claude/tools/rrd_inspect.py rate <file.rrd>
+python .claude/skills/rrd/tools/rrd_inspect.py rate <file.rrd>
 
 # Check the first messages from each
-python .claude/tools/rrd_inspect.py head <file.rrd> -e /world/color_image -n 1
-python .claude/tools/rrd_inspect.py head <file.rrd> -e /world/lidar -n 1
+python .claude/skills/rrd/tools/rrd_inspect.py head <file.rrd> -e /world/color_image -n 1
+python .claude/skills/rrd/tools/rrd_inspect.py head <file.rrd> -e /world/lidar -n 1
 ```
 
 ### "Does the recording have actual image data or just camera parameters?"
 
 ```bash
 # Check what components exist on the camera entity
-python .claude/tools/rrd_inspect.py entities <file.rrd>
+python .claude/skills/rrd/tools/rrd_inspect.py entities <file.rrd>
 # Look for Image:buffer or EncodedImage:blob — if only Pinhole components, pixels are missing
 ```
 
