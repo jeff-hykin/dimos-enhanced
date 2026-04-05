@@ -55,15 +55,60 @@ if (changed) {
 
 console.log("enhance pull complete")
 
+// Check if a directory recursively contains only symlinks pointing into itemsDir
+async function dirContainsOnlyItemSymlinks(dir) {
+    for await (const entry of Deno.readDir(dir)) {
+        const path = join(dir, entry.name)
+        const stat = await Deno.lstat(path)
+        if (stat.isSymlink) {
+            const target = await Deno.readLink(path)
+            const resolved = target.startsWith("/") ? target : resolve(dir, target)
+            if (!resolved.startsWith(itemsDir)) return false
+        } else if (stat.isDirectory) {
+            if (!(await dirContainsOnlyItemSymlinks(path))) return false
+        } else {
+            return false
+        }
+    }
+    return true
+}
+
 // Recursively link files from srcDir into targetDir
 // Directories are created (not symlinked) so tracked dirs like bin/ aren't replaced
-async function linkItem(srcDir, targetDir) {
+// Exception: top-level dot-directories (e.g. .claude) are symlinked as whole dirs
+// since they're entirely managed by enhance and can shadow the parent's files safely.
+async function linkItem(srcDir, targetDir, isTopLevel = true) {
     try { await Deno.mkdir(targetDir, { recursive: true }) } catch { /* exists */ }
     for await (const entry of Deno.readDir(srcDir)) {
         const srcPath = join(srcDir, entry.name)
         const targetPath = join(targetDir, entry.name)
         if (entry.isDirectory) {
-            await linkItem(srcPath, targetPath)
+            // Symlink whole top-level dot-dirs (like .claude) instead of recursing
+            if (isTopLevel && entry.name.startsWith(".")) {
+                const relPath = targetPath.slice(parentDir.length + 1)
+                leafPaths.push(relPath)
+                try {
+                    const stat = await Deno.lstat(targetPath)
+                    if (stat.isSymlink) {
+                        await Deno.remove(targetPath)
+                    } else if (stat.isDirectory) {
+                        // Only replace if all contents are symlinks into items/
+                        if (await dirContainsOnlyItemSymlinks(targetPath)) {
+                            await Deno.remove(targetPath, { recursive: true })
+                        } else {
+                            console.warn(`  SKIP: ${relPath} exists with non-symlink contents`)
+                            continue
+                        }
+                    } else {
+                        console.warn(`  SKIP: ${relPath} exists and is not a symlink`)
+                        continue
+                    }
+                } catch { /* target doesn't exist, good */ }
+                await Deno.symlink(srcPath, targetPath)
+                console.log(`  linked ${relPath} (whole dir)`)
+                continue
+            }
+            await linkItem(srcPath, targetPath, false)
         } else {
             // Record the relative path from the parent repo root
             const relPath = targetPath.slice(parentDir.length + 1)
