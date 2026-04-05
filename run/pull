@@ -96,11 +96,16 @@ async function linkItem(srcDir, targetDir, isTopLevel = true) {
                         if (await dirContainsOnlyItemSymlinks(targetPath)) {
                             await Deno.remove(targetPath, { recursive: true })
                         } else {
-                            console.warn(`  SKIP: ${relPath} exists with non-symlink contents`)
+                            // Has local files (e.g. settings.local.json) — fall back to per-file linking
+                            console.log(`  ${relPath}: has local files, falling back to per-file linking`)
+                            // Remove the leafPaths entry we just added since we're not linking the whole dir
+                            leafPaths.pop()
+                            await linkItem(srcPath, targetPath, false)
                             continue
                         }
                     } else {
                         console.warn(`  SKIP: ${relPath} exists and is not a symlink`)
+                        leafPaths.pop()
                         continue
                     }
                 } catch { /* target doesn't exist, good */ }
