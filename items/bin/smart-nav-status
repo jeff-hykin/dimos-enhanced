@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Show git status for each smart_nav native module repo
+
+SMART_NAV="$(dirname "$0")/../dimos/navigation/smart_nav"
+
+repos=(
+  "$SMART_NAV/modules/far_planner/repo"
+  "$SMART_NAV/modules/local_planner/repo"
+  "$SMART_NAV/modules/path_follower/repo"
+  "$SMART_NAV/modules/terrain_analysis/repo"
+)
+
+for repo in "${repos[@]}"; do
+  name="$(realpath --relative-to="$(dirname "$0")/.." "$repo")"
+  if [ ! -d "$repo" ]; then
+    echo "=== $name === (no local clone)"
+    echo ""
+    continue
+  fi
+  if [ ! -d "$repo/.git" ]; then
+    echo "=== $name === (not a git repo, skipping)"
+    echo ""
+    continue
+  fi
+  echo "=== $name ==="
+  tag="$(git -C "$repo" describe --tags --abbrev=0 2>/dev/null || echo '(no tags)')"
+  branch="$(git -C "$repo" branch --show-current)"
+  echo "  branch: $branch  tag: $tag"
+  git -C "$repo" status -s
+  unpushed="$(git -C "$repo" log --oneline @{upstream}..HEAD 2>/dev/null)"
+  if [ -n "$unpushed" ]; then
+    echo "  unpushed:"
+    echo "$unpushed" | sed 's/^/    /'
+  fi
+  echo ""
+done
