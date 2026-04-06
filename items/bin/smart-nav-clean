@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Remove the nix result/ symlinks from each smart_nav native module.
+# Requires sudo because nix store GC roots are owned by root.
+
+set -euo pipefail
+
+SMART_NAV="$(dirname "$0")/../dimos/navigation/smart_nav"
+
+modules=(
+  "$SMART_NAV/modules/arise_slam"
+  "$SMART_NAV/modules/far_planner"
+  "$SMART_NAV/modules/local_planner"
+  "$SMART_NAV/modules/path_follower"
+  "$SMART_NAV/modules/tare_planner"
+  "$SMART_NAV/modules/terrain_analysis"
+)
+
+for mod in "${modules[@]}"; do
+  name="$(basename "$mod")"
+  result="$mod/result"
+  if [ -e "$result" ]; then
+    echo "removing $name/result"
+    sudo rm -rf "$result"
+  else
+    echo "$name/result (already clean)"
+  fi
+done
+
+echo ""
+echo "Done. Run 'nix-collect-garbage' to reclaim disk space."
