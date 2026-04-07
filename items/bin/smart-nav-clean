@@ -17,6 +17,13 @@ modules=(
 
 for mod in "${modules[@]}"; do
   name="$(basename "$mod")"
+  result="$mod/repo/result"
+  if [ -e "$result" ]; then
+    echo "removing $name/result"
+    sudo rm -rf "$result"
+  else
+    echo "$name/result (already clean)"
+  fi
   result="$mod/result"
   if [ -e "$result" ]; then
     echo "removing $name/result"
