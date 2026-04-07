@@ -17,40 +17,60 @@ The agentic operating system for generalist robotics. `Modules` communicate via 
 | File | Purpose |
 |------|---------|
 | `dimos/core/module.py` | `ModuleBase` and `Module` base classes |
-| `dimos/core/blueprints.py` | `Blueprint`, `_BlueprintAtom`, `autoconnect()` |
+| `dimos/core/coordination/blueprints.py` | `Blueprint`, `_BlueprintAtom`, `autoconnect()` |
+| `dimos/core/coordination/module_coordinator.py` | `ModuleCoordinator` — orchestrates deploy + lifecycle |
+| `dimos/core/coordination/python_worker.py` | `PythonWorker`, `Actor` proxy (forkserver + pipe IPC) |
+| `dimos/core/coordination/worker_manager_python.py` | `WorkerManagerPython` — manages worker pool |
+| `dimos/core/coordination/worker_manager_docker.py` | `WorkerManagerDocker` — docker-based deployment |
 | `dimos/core/stream.py` | `In[T]`, `Out[T]`, `Transport[T]` |
-| `dimos/core/transport.py` | `LCMTransport`, `pLCMTransport` |
-| `dimos/core/module_coordinator.py` | Orchestrates deploy + lifecycle |
-| `dimos/core/worker.py` | Worker subprocess management, `Actor` proxy |
+| `dimos/core/transport.py` | All transport implementations (LCM, SHM, ROS, DDS, Jpeg variants) |
+| `dimos/core/rpc_client.py` | `RPCClient`, `ModuleProxy` — RPC wrappers over Actor |
 | `dimos/core/global_config.py` | `GlobalConfig` (env vars, CLI flags, .env) |
 | `dimos/agents/annotation.py` | `@skill` decorator |
 | `dimos/spec/utils.py` | Spec protocol utilities |
 | `dimos/robot/all_blueprints.py` | Auto-generated registry (DO NOT EDIT MANUALLY) |
 
+Note: `dimos/core/blueprints.py` is a backwards-compat shim that re-exports from `dimos/core/coordination/blueprints.py`.
+
 ## Blueprint Build Timeline
 
-When `blueprint.build()` is called, the sequence is:
+When `ModuleCoordinator.build(blueprint)` is called, the sequence is:
 
 1. **Configuration (HOST)** — Apply global_config_overrides then CLI overrides
 2. **Validation (HOST)** — Run configurators, check requirements, verify no stream name conflicts
-3. **Start Worker Pool (HOST)** — Spawn N forkserver worker subprocesses
-4. **Deploy Modules (HOST → WORKER/DOCKER)** — Instantiate each module in a worker or container, set up RPC
+3. **Start Worker Pool (HOST)** — Spawn N forkserver worker subprocesses (via `PythonWorker`)
+4. **Deploy Modules (HOST → WORKER/DOCKER)** — Instantiate each module in a worker or container via `deploy_parallel()`
 5. **Connect Streams (HOST → WORKER via RPC)** — Match `(name, type)` pairs, assign transports
-6. **Connect RPCs (HOST → WORKER via RPC)** — Wire up cross-module RPC callables
-7. **Connect Module References (HOST → WORKER via RPC)** — Resolve Spec-based references
+6. **Connect Module References (HOST → WORKER via RPC)** — Resolve Spec-based references
+7. **Build All Modules (HOST → WORKER via RPC)** — Call `module.build()` on each in parallel (for heavy one-time work like docker builds, LFS downloads; 24h timeout)
 8. **Start All Modules (HOST → WORKER via RPC)** — Call `module.start()` on each in parallel
-9. **Return** — Caller uses `coordinator.loop()` to block or `coordinator.stop()` to tear down
+9. **Log Blueprint Graph** — Render module graph to Rerun if RerunBridgeModule is active
+10. **Return** — Caller uses `coordinator.loop()` to block or `coordinator.stop()` to tear down
+
+Note: There is also `coordinator.load_blueprint()` for hot-loading additional blueprints into an already-running coordinator.
 
 ## CLI Quick Reference
 
 ```bash
-dimos run <blueprint> [--daemon]    # Start a blueprint
+dimos run <blueprint> [--daemon] [--disable MODULE]  # Start a blueprint
 dimos status                        # Show running instance
 dimos stop [--force]                # Graceful stop (or force kill)
-dimos list                          # List all blueprints
-dimos log [-f] [-n N]               # View logs
-dimos mcp list-tools                # List MCP skills
+dimos restart [--force]             # Restart with same arguments
+dimos list                          # List all blueprints (excludes demo- prefixed)
+dimos log [-f] [-n N] [--all] [--json] [--run ID]  # View logs
+dimos show-config                   # Show current GlobalConfig values
 dimos agent-send "<text>"           # Send text to running agent
+dimos mcp list-tools                # List MCP skills
+dimos mcp call <tool> [--arg K=V]   # Call an MCP tool
+dimos mcp status                    # MCP server status
+dimos mcp modules                   # List deployed modules and skills
+dimos topic echo <topic> [type]     # Listen to a pub/sub topic
+dimos topic send <topic> <expr>     # Publish to a pub/sub topic
+dimos lcmspy                        # LCM message monitor
+dimos agentspy                      # Agent monitor
+dimos humancli                      # Interactive agent CLI
+dimos top                           # Live resource monitor TUI
+dimos rerun-bridge                  # Launch Rerun visualization bridge
 ```
 
 Log files: `~/.local/state/dimos/logs/<run-id>/main.jsonl`
@@ -64,8 +84,10 @@ Log files: `~/.local/state/dimos/logs/<run-id>/main.jsonl`
 
 ## Transports
 
-- **LCMTransport**: Default. Multicast UDP.
+- **LCMTransport**: Default for types with `lcm_encode`. Multicast UDP.
+- **pLCMTransport**: Pickled LCM — auto-selected for types without `lcm_encode`.
 - **SHMTransport/pSHMTransport**: Shared memory — use for images and point clouds.
-- **pLCMTransport**: Pickled LCM — use for complex Python objects.
+- **JpegLcmTransport**: JPEG-compressed images over LCM.
+- **JpegShmTransport**: JPEG-compressed images over shared memory.
 - **ROSTransport**: ROS topic bridge.
 - **DDSTransport**: DDS pub/sub — install with `uv sync --extra dds`.

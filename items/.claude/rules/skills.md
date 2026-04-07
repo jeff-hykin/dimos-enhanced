@@ -17,7 +17,7 @@ globs: ["**/skill*.py", "**/annotation.py", "**/agents/**/*.py"]
 - Declare a `Spec` Protocol for typed, build-time-checked cross-module references
 - Annotate as `_navigator: NavigatorSpec` — injected by blueprint at build time
 - If multiple modules match, use `.remappings()` to resolve
-- **Legacy**: `rpc_calls: list[str]` + `get_rpc_calls()` still works but failures are silent. Don't use in new code.
+- Optional refs: annotate as `_navigator: NavigatorSpec | None` — gets `None` if no provider, no error
 
 ## System Prompts
 
