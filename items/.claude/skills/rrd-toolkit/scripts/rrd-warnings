@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+"""Dump contents of the /__warnings TextLog entity if present."""
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+import rrd_lib as L
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("file", help="Path to .rrd file")
+    p.add_argument("--entity", default="/__warnings", help="Entity path (default: /__warnings)")
+    args = p.parse_args()
+
+    with L.open_rrd(args.file) as (_s, dataset):
+        info = L.enumerate_columns(dataset)
+        if args.entity not in info["entities"]:
+            L.emit_json({"entity": args.entity, "warnings": [], "note": "entity not present in recording"})
+            return
+        timeline = L.pick_timeline(info["index_columns"])
+        df, tl = L.read_entity(dataset, args.entity, timeline=timeline)
+
+        rows = []
+        text_col = None
+        for c in df.columns:
+            if c.endswith(":text") or c.endswith("TextLog:text"):
+                text_col = c
+                break
+        for i in range(len(df)):
+            entry = {}
+            if tl in df.columns:
+                entry["time"] = L.timestamp_to_iso(df[tl].iloc[i])
+            if text_col:
+                vals = L.extract_values(df[text_col][i:i+1])
+                entry["text"] = vals[0] if vals else None
+            rows.append(entry)
+
+    L.emit_json({"entity": args.entity, "timeline": tl, "warnings": rows})
+
+
+if __name__ == "__main__":
+    main()

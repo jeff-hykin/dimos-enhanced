@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+"""Dump raw component values as JSON (e.g. Points3D:positions, Transform3D:translation)."""
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+import rrd_lib as L
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("file", help="Path to .rrd file")
+    p.add_argument("--entity", required=True, help="Entity path")
+    p.add_argument("--component", required=True, help="Component (e.g. 'Transform3D:translation' or 'Points3D:positions')")
+    p.add_argument("--start", type=float, help="Start time (seconds)")
+    p.add_argument("--end", type=float, help="End time (seconds)")
+    p.add_argument("--relative", action="store_true", help="--start/--end relative to recording start")
+    p.add_argument("--timeline", help="Timeline (default: log_time)")
+    p.add_argument("--max-rows", type=int, default=1000, help="Cap on output rows (default: 1000)")
+    args = p.parse_args()
+
+    import numpy as np
+    with L.open_rrd(args.file) as (_s, dataset):
+        info = L.enumerate_columns(dataset)
+        timeline = L.pick_timeline(info["index_columns"], args.timeline)
+        df, tl = L.read_entity(dataset, args.entity, timeline=timeline)
+        if len(df) == 0:
+            L.emit_json({"entity": args.entity, "component": args.component, "rows": []})
+            return
+
+        col = L.component_column_name(df, args.entity, args.component)
+        if col is None:
+            print(f"ERROR: component '{args.component}' not found for {args.entity}", file=sys.stderr)
+            sys.exit(2)
+
+        if (args.start is not None or args.end is not None) and tl in df.columns:
+            times = L.to_timeline_seconds(df[tl], tl).to_numpy()
+            t0 = float(times[0]) if args.relative else 0.0
+            lo = (args.start or -float("inf")) + (t0 if args.relative else 0)
+            hi = (args.end or float("inf")) + (t0 if args.relative else 0)
+            mask = (times >= lo) & (times <= hi)
+            df = df[mask].reset_index(drop=True)
+
+        if len(df) > args.max_rows:
+            df = df.head(args.max_rows)
+
+        vals = L.extract_values(df[col])
+        rows = []
+        for i in range(len(df)):
+            rows.append({
+                "time": float(L.to_timeline_seconds(df[tl], tl).iloc[i]) if tl in df.columns else None,
+                "value": vals[i],
+            })
+
+    L.emit_json({
+        "entity": args.entity,
+        "component": args.component,
+        "timeline": tl,
+        "num_rows": len(rows),
+        "rows": rows,
+    })
+
+
+if __name__ == "__main__":
+    main()

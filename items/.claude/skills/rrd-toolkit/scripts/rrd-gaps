@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+"""List time gaps in publishing larger than a threshold."""
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+import rrd_lib as L
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("file", help="Path to .rrd file")
+    p.add_argument("--entity", required=True, help="Entity path")
+    p.add_argument("--threshold", type=float, default=1.0, help="Gap threshold in seconds (default: 1.0)")
+    p.add_argument("--timeline", help="Timeline (default: log_time)")
+    args = p.parse_args()
+
+    import numpy as np
+    with L.open_rrd(args.file) as (_s, dataset):
+        info = L.enumerate_columns(dataset)
+        timeline = L.pick_timeline(info["index_columns"], args.timeline)
+        df, tl = L.read_entity(dataset, args.entity, timeline=timeline)
+
+        if len(df) < 2 or tl not in df.columns:
+            L.emit_json({"entity": args.entity, "gaps": []})
+            return
+
+        times = np.sort(L.to_timeline_seconds(df[tl], tl).to_numpy())
+        gaps_out = []
+        for i in range(1, len(times)):
+            g = float(times[i] - times[i - 1])
+            if g > args.threshold:
+                gaps_out.append({
+                    "gap_s": round(g, 4),
+                    "after_time": float(times[i - 1]),
+                    "before_time": float(times[i]),
+                    "index_before_gap": i - 1,
+                })
+
+    L.emit_json({
+        "entity": args.entity,
+        "timeline": tl,
+        "threshold_s": args.threshold,
+        "gaps": gaps_out,
+        "num_gaps": len(gaps_out),
+    })
+
+
+if __name__ == "__main__":
+    main()

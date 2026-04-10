@@ -1,0 +1,80 @@
+#!/usr/bin/env python3
+"""Histogram of a scalar field of a component across all rows."""
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+import rrd_lib as L
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("file", help="Path to .rrd file")
+    p.add_argument("--entity", required=True, help="Entity path")
+    p.add_argument("--component", required=True, help="Component (e.g. Transform3D:translation)")
+    p.add_argument("--field", default="size", help="'size' (point count) | 'x' | 'y' | 'z' | 'norm' (default: size)")
+    p.add_argument("--bins", type=int, default=20, help="Number of bins (default: 20)")
+    p.add_argument("--timeline", help="Timeline (default: log_time)")
+    args = p.parse_args()
+
+    import numpy as np
+    with L.open_rrd(args.file) as (_s, dataset):
+        info = L.enumerate_columns(dataset)
+        timeline = L.pick_timeline(info["index_columns"], args.timeline)
+        df, tl = L.read_entity(dataset, args.entity, timeline=timeline)
+        if len(df) == 0:
+            L.emit_json({"entity": args.entity, "histogram": []})
+            return
+
+        col = L.component_column_name(df, args.entity, args.component)
+        if col is None:
+            print(f"ERROR: component '{args.component}' not found for {args.entity}", file=sys.stderr)
+            sys.exit(2)
+
+        vals = L.extract_values(df[col])
+        samples: list[float] = []
+        for v in vals:
+            if v is None:
+                continue
+            if args.field == "size":
+                samples.append(float(L.value_size(v)))
+            elif args.field == "norm":
+                try:
+                    arr = np.asarray(v, dtype=float).ravel()
+                    samples.append(float(np.sqrt((arr * arr).sum())))
+                except Exception:
+                    pass
+            elif args.field in ("x", "y", "z", "w"):
+                idx = {"x": 0, "y": 1, "z": 2, "w": 3}[args.field]
+                try:
+                    arr = np.asarray(v, dtype=float).ravel()
+                    if len(arr) > idx:
+                        samples.append(float(arr[idx]))
+                except Exception:
+                    pass
+
+        if not samples:
+            L.emit_json({"entity": args.entity, "histogram": [], "note": "no samples extracted"})
+            return
+
+        counts, edges = np.histogram(samples, bins=args.bins)
+        hist = [
+            {"lo": float(edges[i]), "hi": float(edges[i + 1]), "count": int(counts[i])}
+            for i in range(len(counts))
+        ]
+
+    L.emit_json({
+        "entity": args.entity,
+        "component": args.component,
+        "field": args.field,
+        "n_samples": len(samples),
+        "min": float(min(samples)),
+        "max": float(max(samples)),
+        "mean": float(sum(samples) / len(samples)),
+        "histogram": hist,
+    })
+
+
+if __name__ == "__main__":
+    main()

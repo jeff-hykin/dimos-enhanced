@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+"""Timestamps where an entity's position is within radius of a point.
+
+Thin convenience wrapper around rrd-when.
+
+Example:
+  rrd-near-point file.rrd --entity /world/odom --component Transform3D:translation --point 0,2,6 --radius 1.0
+"""
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+import rrd_lib as L
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("file", help="Path to .rrd file")
+    p.add_argument("--entity", required=True)
+    p.add_argument("--component", default="Transform3D:translation")
+    p.add_argument("--point", required=True, help="X,Y,Z (comma-separated)")
+    p.add_argument("--radius", type=float, required=True)
+    p.add_argument("--timeline", help="Timeline (default: log_time)")
+    p.add_argument("--max-matches", type=int, default=1000)
+    args = p.parse_args()
+
+    import numpy as np
+    try:
+        pt = [float(x) for x in args.point.split(",")]
+    except ValueError:
+        print("ERROR: --point must be comma-separated numbers like '0,2,6'", file=sys.stderr)
+        sys.exit(2)
+
+    with L.open_rrd(args.file) as (_s, dataset):
+        info = L.enumerate_columns(dataset)
+        timeline = L.pick_timeline(info["index_columns"], args.timeline)
+        df, tl = L.read_entity(dataset, args.entity, timeline=timeline)
+        col = L.component_column_name(df, args.entity, args.component)
+        if col is None:
+            print(f"ERROR: component '{args.component}' not found for {args.entity}", file=sys.stderr)
+            sys.exit(2)
+
+        vals = L.extract_values(df[col])
+        matches = []
+        for i, v in enumerate(vals):
+            if v is None:
+                continue
+            try:
+                arr = np.asarray(v, dtype=float).ravel()
+                pt_arr = np.asarray(pt, dtype=float)
+                if len(arr) < len(pt_arr):
+                    continue
+                d = float(np.sqrt(((arr[:len(pt_arr)] - pt_arr) ** 2).sum()))
+            except Exception:
+                continue
+            if d <= args.radius:
+                row_t = float(L.to_timeline_seconds(df[tl], tl).iloc[i]) if tl in df.columns else None
+                matches.append({"index": i, "time": row_t, "distance": round(d, 4), "position": list(arr)})
+                if len(matches) >= args.max_matches:
+                    break
+
+    L.emit_json({
+        "entity": args.entity,
+        "point": pt,
+        "radius": args.radius,
+        "num_matches": len(matches),
+        "matches": matches,
+    })
+
+
+if __name__ == "__main__":
+    main()

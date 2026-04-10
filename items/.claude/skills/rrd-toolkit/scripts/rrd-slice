@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+"""Rows where start <= timestamp <= end. Use --relative for seconds-since-start."""
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+import rrd_lib as L
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("file", help="Path to .rrd file")
+    p.add_argument("--entity", required=True, help="Entity path")
+    p.add_argument("--start", type=float, required=True, help="Start timestamp (seconds)")
+    p.add_argument("--end", type=float, required=True, help="End timestamp (seconds)")
+    p.add_argument("--relative", action="store_true", help="start/end are relative to recording start")
+    p.add_argument("--component", help="Include only this component")
+    p.add_argument("--timeline", help="Timeline (default: log_time)")
+    p.add_argument("--summary", action="store_true", help="Only include size, not values")
+    args = p.parse_args()
+
+    import numpy as np
+    with L.open_rrd(args.file) as (_s, dataset):
+        info = L.enumerate_columns(dataset)
+        timeline = L.pick_timeline(info["index_columns"], args.timeline)
+        df, tl = L.read_entity(dataset, args.entity, timeline=timeline)
+        if len(df) == 0 or tl not in df.columns:
+            L.emit_json({"entity": args.entity, "rows": []})
+            return
+
+        times = L.to_timeline_seconds(df[tl], tl).to_numpy()
+        if args.relative:
+            t0 = float(times[0])
+            lo, hi = t0 + args.start, t0 + args.end
+        else:
+            lo, hi = args.start, args.end
+
+        mask = (times >= lo) & (times <= hi)
+        selected = df[mask]
+
+        data_cols = [c for c in df.columns if ":" in c and not c.startswith("rerun_")]
+        if args.component:
+            data_cols = [c for c in data_cols if c.endswith(f":{args.component}")]
+
+        rows = []
+        for i in range(len(selected)):
+            r = {"time": float(L.to_timeline_seconds(selected[tl], tl).iloc[i])}
+            for c in data_cols:
+                vals = L.extract_values(selected[c][i:i+1])
+                v = vals[0] if vals else None
+                key = c.split(":", 1)[-1] if ":" in c else c
+                r[key] = L.value_size(v) if args.summary else v
+            rows.append(r)
+
+    L.emit_json({
+        "entity": args.entity,
+        "timeline": tl,
+        "start_s": lo,
+        "end_s": hi,
+        "num_rows": len(rows),
+        "rows": rows,
+    })
+
+
+if __name__ == "__main__":
+    main()

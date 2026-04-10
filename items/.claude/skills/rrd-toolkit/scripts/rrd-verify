@@ -1,0 +1,15 @@
+#!/bin/sh
+# Passthrough to `rerun rrd verify`. See `rerun rrd verify --help`.
+for rerun in \
+    "$(command -v rerun 2>/dev/null)" \
+    "$HOME/repos/dimos/.venv/bin/rerun" \
+    "$HOME/repos/dimos2/.venv/bin/rerun" \
+    "$HOME/repos/dimos3/.venv/bin/rerun" \
+    "$HOME/repos/dimensional-applications/.venv/bin/rerun"
+do
+    if [ -x "$rerun" ]; then
+        exec "$rerun" rrd verify "$@"
+    fi
+done
+echo "ERROR: rerun CLI not found. Install rerun-sdk or set PATH to include its bin dir." >&2
+exit 2

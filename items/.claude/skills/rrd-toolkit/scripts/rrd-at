@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+"""Get nearest rows to a specific time or to another entity's event."""
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+import rrd_lib as L
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("file", help="Path to .rrd file")
+    p.add_argument("--entity", required=True, help="Entity path to read from")
+    p.add_argument("--time", type=float, help="Absolute time (seconds) to look up")
+    p.add_argument("--relative", type=float, help="Relative time from start (seconds)")
+    p.add_argument("--ref", help="Reference entity to derive time from")
+    p.add_argument("--ref-event", default="last", choices=["first", "last"], help="Which event of --ref (default: last)")
+    p.add_argument("--ref-index", type=int, help="Specific row index of --ref")
+    p.add_argument("-n", type=int, default=1, help="Number of nearest rows (default: 1)")
+    p.add_argument("--component", help="Include only this component")
+    p.add_argument("--timeline", help="Timeline (default: log_time)")
+    p.add_argument("--summary", action="store_true", help="Only include size, not values")
+    args = p.parse_args()
+
+    import numpy as np
+    with L.open_rrd(args.file) as (_s, dataset):
+        info = L.enumerate_columns(dataset)
+        timeline = L.pick_timeline(info["index_columns"], args.timeline)
+
+        # Resolve target time
+        target = None
+        if args.time is not None:
+            target = args.time
+        elif args.relative is not None:
+            df_e, tl_e = L.read_entity(dataset, args.entity, timeline=timeline)
+            if tl_e not in df_e.columns or len(df_e) == 0:
+                L.emit_json({"error": "cannot resolve relative time: entity has no timeline data"})
+                return
+            t0 = float(L.to_timeline_seconds(df_e[tl_e], tl_e).iloc[0])
+            target = t0 + args.relative
+        elif args.ref:
+            df_ref, tl_ref = L.read_entity(dataset, args.ref, timeline=timeline)
+            if len(df_ref) == 0 or tl_ref not in df_ref.columns:
+                L.emit_json({"error": f"ref entity {args.ref} has no data"})
+                return
+            ref_times = L.to_timeline_seconds(df_ref[tl_ref], tl_ref).to_numpy()
+            if args.ref_index is not None:
+                target = float(ref_times[args.ref_index])
+            elif args.ref_event == "first":
+                target = float(ref_times[0])
+            else:
+                target = float(ref_times[-1])
+        else:
+            print("ERROR: one of --time, --relative, or --ref is required", file=sys.stderr)
+            sys.exit(2)
+
+        df, tl = L.read_entity(dataset, args.entity, timeline=timeline)
+        if len(df) == 0 or tl not in df.columns:
+            L.emit_json({"entity": args.entity, "rows": []})
+            return
+
+        times = L.to_timeline_seconds(df[tl], tl).to_numpy()
+        order = np.argsort(times)
+        times_sorted = times[order]
+        df_sorted = df.iloc[order].reset_index(drop=True)
+
+        center = L.nearest_index(times_sorted, target)
+        half = max(1, args.n) // 2
+        lo = max(0, center - half)
+        hi = min(len(df_sorted), lo + args.n)
+        lo = max(0, hi - args.n)
+        selected = df_sorted.iloc[lo:hi]
+
+        data_cols = [c for c in df.columns if ":" in c and not c.startswith("rerun_")]
+        if args.component:
+            data_cols = [c for c in data_cols if c.endswith(f":{args.component}")]
+
+        rows = []
+        for i in range(len(selected)):
+            row_t = float(L.to_timeline_seconds(selected[tl], tl).iloc[i])
+            r = {"time": row_t, "offset_from_target_s": round(row_t - target, 4)}
+            for c in data_cols:
+                vals = L.extract_values(selected[c][i:i+1])
+                v = vals[0] if vals else None
+                key = c.split(":", 1)[-1] if ":" in c else c
+                r[key] = L.value_size(v) if args.summary else v
+            rows.append(r)
+
+    L.emit_json({
+        "entity": args.entity,
+        "timeline": tl,
+        "target_time": target,
+        "num_rows": len(rows),
+        "rows": rows,
+    })
+
+
+if __name__ == "__main__":
+    main()

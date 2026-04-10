@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+"""Publishing rate (Hz), min/max/mean gap, duration — per entity."""
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+import rrd_lib as L
+
+
+def _stats(entity_path: str, dataset, timeline: str) -> dict:
+    import numpy as np
+    df, tl = L.read_entity(dataset, entity_path, timeline=timeline)
+    if len(df) == 0 or tl not in df.columns:
+        return {"entity_path": entity_path, "rows": 0}
+    times = L.to_timeline_seconds(df[tl], tl).to_numpy()
+    times = np.sort(times)
+    rows = len(times)
+    if rows < 2:
+        return {"entity_path": entity_path, "rows": rows, "duration_s": 0.0, "hz": None}
+    gaps = np.diff(times)
+    duration = float(times[-1] - times[0])
+    return {
+        "entity_path": entity_path,
+        "rows": rows,
+        "duration_s": round(duration, 3),
+        "hz": round(rows / duration, 2) if duration > 0 else None,
+        "gap_min_s": round(float(gaps.min()), 4),
+        "gap_max_s": round(float(gaps.max()), 4),
+        "gap_mean_s": round(float(gaps.mean()), 4),
+        "gap_median_s": round(float(np.median(gaps)), 4),
+    }
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("file", help="Path to .rrd file")
+    p.add_argument("--entity", help="Specific entity to report (default: all)")
+    p.add_argument("--timeline", help="Timeline (default: log_time)")
+    args = p.parse_args()
+
+    with L.open_rrd(args.file) as (_s, dataset):
+        info = L.enumerate_columns(dataset)
+        timeline = L.pick_timeline(info["index_columns"], args.timeline)
+        entities = [args.entity] if args.entity else sorted(info["entities"].keys())
+        out = [_stats(e, dataset, timeline) for e in entities]
+
+    L.emit_json({"timeline": timeline, "entities": out})
+
+
+if __name__ == "__main__":
+    main()

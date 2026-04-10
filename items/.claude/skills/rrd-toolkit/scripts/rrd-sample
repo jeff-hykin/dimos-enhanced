@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+"""Resample an entity at a fixed rate (nearest-neighbor)."""
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+import rrd_lib as L
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("file", help="Path to .rrd file")
+    p.add_argument("--entity", required=True, help="Entity path")
+    p.add_argument("--hz", type=float, required=True, help="Target sample rate (Hz)")
+    p.add_argument("--component", help="Only include this component in output")
+    p.add_argument("--timeline", help="Timeline (default: log_time)")
+    p.add_argument("--values", action="store_true", help="Include component values (default: just timestamps + sizes)")
+    args = p.parse_args()
+
+    import numpy as np
+    with L.open_rrd(args.file) as (_s, dataset):
+        info = L.enumerate_columns(dataset)
+        timeline = L.pick_timeline(info["index_columns"], args.timeline)
+        df, tl = L.read_entity(dataset, args.entity, timeline=timeline)
+
+        if len(df) == 0 or tl not in df.columns:
+            L.emit_json({"entity": args.entity, "samples": []})
+            return
+
+        times = L.to_timeline_seconds(df[tl], tl).to_numpy()
+        order = np.argsort(times)
+        times = times[order]
+        df = df.iloc[order].reset_index(drop=True)
+
+        t_start, t_end = float(times[0]), float(times[-1])
+        period = 1.0 / args.hz
+        sample_times = np.arange(t_start, t_end + period / 2, period)
+
+        # find data columns
+        data_cols = [c for c in df.columns if ":" in c and not c.startswith("rerun_")]
+        if args.component:
+            data_cols = [c for c in data_cols if c.endswith(f":{args.component}")]
+
+        samples = []
+        for st in sample_times:
+            idx = L.nearest_index(times, st)
+            s = {"sample_time": round(float(st), 4), "actual_time": float(times[idx]), "source_index": int(idx)}
+            for c in data_cols:
+                vals = L.extract_values(df[c][idx:idx+1])
+                v = vals[0] if vals else None
+                s[c.split(":", 1)[-1] if ":" in c else c] = v if args.values else L.value_size(v)
+            samples.append(s)
+
+    L.emit_json({
+        "entity": args.entity,
+        "timeline": tl,
+        "hz": args.hz,
+        "num_samples": len(samples),
+        "samples": samples,
+    })
+
+
+if __name__ == "__main__":
+    main()

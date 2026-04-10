@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+"""List entity paths, row counts, archetypes, and time range per entity."""
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+import rrd_lib as L
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("file", help="Path to .rrd file")
+    p.add_argument("--timeline", help="Timeline to report ranges on (default: log_time if present)")
+    args = p.parse_args()
+
+    with L.open_rrd(args.file) as (_server, dataset):
+        info = L.enumerate_columns(dataset)
+        timeline = L.pick_timeline(info["index_columns"], args.timeline)
+
+        # For each entity, read one column to get row count + time range
+        out_entities = []
+        for entity_path in sorted(info["entities"].keys()):
+            e = info["entities"][entity_path]
+            try:
+                df, _ = L.read_entity(dataset, entity_path, timeline=timeline)
+                rows = len(df)
+                if rows > 0 and timeline in df.columns:
+                    times = L.to_timeline_seconds(df[timeline], timeline)
+                    t_start = float(times.iloc[0])
+                    t_end = float(times.iloc[-1])
+                else:
+                    t_start = t_end = None
+            except Exception as exc:
+                rows = 0
+                t_start = t_end = None
+                e["error"] = str(exc)
+            out_entities.append({
+                "entity_path": entity_path,
+                "rows": rows,
+                "archetypes": e["archetypes"],
+                "components": e["components"],
+                "time_start": t_start,
+                "time_end": t_end,
+                "duration_s": (t_end - t_start) if (t_start is not None and t_end is not None) else None,
+            })
+
+    L.emit_json({"timeline": timeline, "entities": out_entities})
+
+
+if __name__ == "__main__":
+    main()

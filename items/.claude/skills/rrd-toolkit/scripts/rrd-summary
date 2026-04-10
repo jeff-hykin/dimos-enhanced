@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+"""Per-row summary stats for a component over time: size, min, max, mean."""
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+import rrd_lib as L
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("file", help="Path to .rrd file")
+    p.add_argument("--entity", required=True, help="Entity path")
+    p.add_argument("--component", required=True, help="Component (e.g. Points3D:positions)")
+    p.add_argument("--timeline", help="Timeline (default: log_time)")
+    p.add_argument("--stride", type=int, default=1, help="Sample every Nth row (default: 1)")
+    args = p.parse_args()
+
+    import numpy as np
+    with L.open_rrd(args.file) as (_s, dataset):
+        info = L.enumerate_columns(dataset)
+        timeline = L.pick_timeline(info["index_columns"], args.timeline)
+        df, tl = L.read_entity(dataset, args.entity, timeline=timeline)
+        if len(df) == 0:
+            L.emit_json({"entity": args.entity, "component": args.component, "rows": []})
+            return
+
+        col = L.component_column_name(df, args.entity, args.component)
+        if col is None:
+            print(f"ERROR: component '{args.component}' not found for {args.entity}", file=sys.stderr)
+            sys.exit(2)
+
+        if args.stride > 1:
+            df = df.iloc[::args.stride].reset_index(drop=True)
+
+        vals = L.extract_values(df[col])
+        rows = []
+        sizes = []
+        for i, v in enumerate(vals):
+            size = L.value_size(v)
+            sizes.append(size)
+            stats = {
+                "time": float(L.to_timeline_seconds(df[tl], tl).iloc[i]) if tl in df.columns else None,
+                "size": size,
+            }
+            try:
+                arr = np.asarray(v, dtype=float)
+                if arr.size > 0:
+                    stats["shape"] = list(arr.shape)
+                    stats["min"] = float(arr.min())
+                    stats["max"] = float(arr.max())
+                    stats["mean"] = float(arr.mean())
+            except Exception:
+                pass
+            rows.append(stats)
+
+        overall = {
+            "num_rows": len(rows),
+            "size_min": int(min(sizes)) if sizes else 0,
+            "size_max": int(max(sizes)) if sizes else 0,
+            "size_mean": float(sum(sizes) / len(sizes)) if sizes else 0,
+        }
+
+    L.emit_json({
+        "entity": args.entity,
+        "component": args.component,
+        "timeline": tl,
+        "overall": overall,
+        "rows": rows,
+    })
+
+
+if __name__ == "__main__":
+    main()

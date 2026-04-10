@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+"""Show recording metadata: store ID, SDK version, time range, row counts, file size."""
+import argparse
+import os
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+import rrd_lib as L
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("file", help="Path to .rrd file")
+    args = p.parse_args()
+
+    rr = L._require_rerun()
+    from rerun.recording import load_archive
+
+    abs_path = str(Path(args.file).expanduser().resolve())
+    archive = load_archive(abs_path)
+
+    recordings = []
+    for rec in archive.all_recordings():
+        schema = rec.schema()
+        idx = [c.name for c in schema.index_columns()]
+        comp = [c.name for c in schema.component_columns()]
+        recordings.append({
+            "application_id": rec.application_id(),
+            "recording_id": rec.recording_id(),
+            "timelines": idx,
+            "num_component_columns": len(comp),
+            "entities": sorted(set(c.entity_path for c in schema.component_columns())),
+        })
+
+    # Get time range via server
+    with L.open_rrd(args.file) as (_s, dataset):
+        info = L.enumerate_columns(dataset)
+        timeline = L.pick_timeline(info["index_columns"])
+        # sample via a time-indexed entity
+        t_start = t_end = None
+        total_rows = 0
+        for entity_path in info["entities"]:
+            try:
+                df, _ = L.read_entity(dataset, entity_path, timeline=timeline)
+                if len(df) == 0 or timeline not in df.columns:
+                    continue
+                total_rows += len(df)
+                times = L.to_timeline_seconds(df[timeline], timeline)
+                s, e = float(times.iloc[0]), float(times.iloc[-1])
+                if t_start is None or s < t_start:
+                    t_start = s
+                if t_end is None or e > t_end:
+                    t_end = e
+            except Exception:
+                continue
+
+    size_mb = os.path.getsize(abs_path) / 1024 / 1024
+    result = {
+        "path": abs_path,
+        "file_size_mb": round(size_mb, 2),
+        "num_recordings": archive.num_recordings(),
+        "recordings": recordings,
+        "num_entities": len(info["entities"]),
+        "total_rows": total_rows,
+        "timeline_used": timeline,
+        "time_start": t_start,
+        "time_end": t_end,
+        "duration_s": (t_end - t_start) if (t_start is not None and t_end is not None) else None,
+    }
+    L.emit_json(result)
+
+
+if __name__ == "__main__":
+    main()

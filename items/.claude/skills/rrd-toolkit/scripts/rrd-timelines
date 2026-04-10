@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+"""List available timelines with their range and tick count."""
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+import rrd_lib as L
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("file", help="Path to .rrd file")
+    args = p.parse_args()
+
+    with L.open_rrd(args.file) as (_s, dataset):
+        info = L.enumerate_columns(dataset)
+        timelines_out = []
+        for col in info["index_columns"]:
+            tl = col["name"]
+            # pick a time-indexed entity to read range from
+            t_start = t_end = None
+            total = 0
+            for entity_path in info["entities"]:
+                try:
+                    df, _ = L.read_entity(dataset, entity_path, timeline=tl)
+                    if tl not in df.columns or len(df) == 0:
+                        continue
+                    times = L.to_timeline_seconds(df[tl], tl)
+                    s, e = float(times.iloc[0]), float(times.iloc[-1])
+                    if t_start is None or s < t_start:
+                        t_start = s
+                    if t_end is None or e > t_end:
+                        t_end = e
+                    total += len(df)
+                except Exception:
+                    continue
+            timelines_out.append({
+                "name": tl,
+                "is_static": col["is_static"],
+                "start": t_start,
+                "end": t_end,
+                "duration_s": (t_end - t_start) if (t_start is not None and t_end is not None) else None,
+                "total_ticks": total,
+            })
+
+    L.emit_json({"timelines": timelines_out})
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,113 @@
+#!/usr/bin/env python3
+"""For each row of entity-a matching --when-a, report the closest row of entity-b.
+
+Example:
+  rrd-correlate file.rrd \\
+    --entity-a /world/odom --component-a Transform3D:translation \\
+    --when-a 'norm(value - [0,2,6]) < 1.0' \\
+    --entity-b /world/lidar --component-b Points3D:positions
+"""
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+import rrd_lib as L
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("file", help="Path to .rrd file")
+    p.add_argument("--entity-a", required=True, help="Entity A (trigger)")
+    p.add_argument("--component-a", help="Component on A (required if --when-a set)")
+    p.add_argument("--when-a", help="Predicate on A's component")
+    p.add_argument("--entity-b", required=True, help="Entity B (to look up)")
+    p.add_argument("--component-b", help="Component on B (default: all B's components summarized)")
+    p.add_argument("--timeline", help="Timeline (default: log_time)")
+    p.add_argument("--max-matches", type=int, default=500, help="Cap on matches (default: 500)")
+    p.add_argument("--values", action="store_true", help="Include full component values in output")
+    args = p.parse_args()
+
+    import numpy as np
+    with L.open_rrd(args.file) as (_s, dataset):
+        info = L.enumerate_columns(dataset)
+        timeline = L.pick_timeline(info["index_columns"], args.timeline)
+
+        df_a, tl = L.read_entity(dataset, args.entity_a, timeline=timeline)
+        df_b, _ = L.read_entity(dataset, args.entity_b, timeline=timeline)
+        if len(df_a) == 0 or len(df_b) == 0 or tl not in df_a.columns or tl not in df_b.columns:
+            L.emit_json({"matches": [], "note": "insufficient data in one of the entities"})
+            return
+
+        # Which rows of A match --when-a?
+        if args.when_a:
+            if not args.component_a:
+                print("ERROR: --component-a required when --when-a is set", file=sys.stderr)
+                sys.exit(2)
+            col_a = L.component_column_name(df_a, args.entity_a, args.component_a)
+            if col_a is None:
+                print(f"ERROR: component '{args.component_a}' not found on {args.entity_a}", file=sys.stderr)
+                sys.exit(2)
+            try:
+                code = L.compile_predicate(args.when_a)
+            except ValueError as e:
+                print(f"ERROR: {e}", file=sys.stderr)
+                sys.exit(2)
+            vals_a = L.extract_values(df_a[col_a])
+            matching_indices = [i for i, v in enumerate(vals_a) if L.eval_predicate(code, v, L.value_size(v))]
+        else:
+            matching_indices = list(range(len(df_a)))
+
+        # Build B time index
+        times_b = L.to_timeline_seconds(df_b[tl], tl).to_numpy()
+        order_b = np.argsort(times_b)
+        times_b_sorted = times_b[order_b]
+        df_b_sorted = df_b.iloc[order_b].reset_index(drop=True)
+
+        # Resolve which B columns to report
+        b_data_cols = [c for c in df_b.columns if ":" in c and not c.startswith("rerun_")]
+        if args.component_b:
+            b_data_cols = [c for c in b_data_cols if c.endswith(f":{args.component_b}")]
+
+        times_a = L.to_timeline_seconds(df_a[tl], tl).to_numpy()
+        results = []
+        for i in matching_indices[:args.max_matches]:
+            ta = float(times_a[i])
+            bi = L.nearest_index(times_b_sorted, ta)
+            tb = float(times_b_sorted[bi])
+            entry = {
+                "a_index": i,
+                "a_time": ta,
+                "b_index": int(bi),
+                "b_time": tb,
+                "delta_s": round(tb - ta, 4),
+            }
+            # report A's value if component-a was given
+            if args.component_a:
+                col_a = L.component_column_name(df_a, args.entity_a, args.component_a)
+                if col_a:
+                    a_val = L.extract_values(df_a[col_a][i:i+1])[0]
+                    entry["a_value" if args.values else "a_size"] = a_val if args.values else L.value_size(a_val)
+            # report B's values
+            for c in b_data_cols:
+                vals = L.extract_values(df_b_sorted[c][bi:bi+1])
+                v = vals[0] if vals else None
+                # Key: strip entity-path prefix and normalise
+                tail = c.split(":", 1)[-1] if ":" in c else c
+                safe = tail.replace(":", "_").replace("/", "_")
+                key = ("b_" + safe) if args.values else ("b_" + safe + "_size")
+                entry[key] = v if args.values else L.value_size(v)
+            results.append(entry)
+
+    L.emit_json({
+        "entity_a": args.entity_a,
+        "entity_b": args.entity_b,
+        "predicate_a": args.when_a,
+        "timeline": tl,
+        "num_matches": len(results),
+        "matches": results,
+    })
+
+
+if __name__ == "__main__":
+    main()

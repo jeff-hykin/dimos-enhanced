@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+"""Show the transform frame hierarchy (parent_frame relationships)."""
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+import rrd_lib as L
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("file", help="Path to .rrd file")
+    args = p.parse_args()
+
+    with L.open_rrd(args.file) as (_s, dataset):
+        info = L.enumerate_columns(dataset)
+        # Find all entities with Transform3D archetype
+        tf_entities = []
+        for entity_path, e in info["entities"].items():
+            if "Transform3D" in e["archetypes"]:
+                tf_entities.append(entity_path)
+
+        # For each, try to read parent_frame/child_frame
+        timeline = L.pick_timeline(info["index_columns"])
+        frames = []
+        for entity_path in sorted(tf_entities):
+            try:
+                df, _ = L.read_entity(dataset, entity_path, timeline=timeline)
+                parent_col = L.component_column_name(df, entity_path, "Transform3D:parent_frame")
+                child_col = L.component_column_name(df, entity_path, "Transform3D:child_frame")
+                trans_col = L.component_column_name(df, entity_path, "Transform3D:translation")
+                parent = None
+                child = None
+                if parent_col is not None and len(df) > 0:
+                    v = L.extract_values(df[parent_col][:1])[0]
+                    parent = v if isinstance(v, str) else (v[0] if isinstance(v, list) and v else str(v))
+                if child_col is not None and len(df) > 0:
+                    v = L.extract_values(df[child_col][:1])[0]
+                    child = v if isinstance(v, str) else (v[0] if isinstance(v, list) and v else str(v))
+                rows = len(df)
+                frames.append({
+                    "entity_path": entity_path,
+                    "parent_frame": parent,
+                    "child_frame": child,
+                    "has_translation": trans_col is not None,
+                    "rows": rows,
+                })
+            except Exception as exc:
+                frames.append({"entity_path": entity_path, "error": str(exc)})
+
+    L.emit_json({"frames": frames})
+
+
+if __name__ == "__main__":
+    main()
