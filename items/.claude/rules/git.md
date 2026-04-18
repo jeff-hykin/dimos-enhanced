@@ -18,7 +18,7 @@ alwaysApply: true
 When merging `dev` into a feature branch (or rebasing onto dev), **always check for convention changes**:
 
 1. Run `git diff dev...HEAD -- conventions.md` and `git diff HEAD...dev -- conventions.md` to see if `conventions.md` was added or changed on either side.
-2. If dev introduced convention changes (e.g. renamed `global_config` → `global_conf`, changed import paths, renamed modules), those changes won't cause merge conflicts in new files your branch added — but those new files will silently use the old conventions and be broken.
-3. After merging, read the current `conventions.md` and scan all files changed on your branch (`git diff dev...HEAD --name-only`) for violations of the updated conventions. Fix any that use the old names/patterns.
+2. If dev has convention changes, read the full current `conventions.md` after merging. Conventions can be anything — naming patterns, architectural rules, import style, error handling approaches, API design patterns, documentation requirements, config formats, etc.
+3. Get the list of all files changed on your branch: `git diff dev...HEAD --name-only`. Read through each one and check whether it follows every convention in the current `conventions.md`. Fix any violations.
 
-This is critical because convention renames (function names, module paths, config keys) in dev won't conflict with brand-new files on your branch — git sees them as unrelated changes — but the new files will reference symbols that no longer exist.
+This matters because convention changes on dev won't produce merge conflicts with new code on your branch — git merges them cleanly since they touch different files. But the branch code may silently violate the new conventions. For example: dev adds "all modules must implement `build()` as an `@rpc`" — your branch's new module won't conflict but will be wrong if it doesn't follow that pattern.
