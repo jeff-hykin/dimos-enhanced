@@ -6,7 +6,7 @@ The agentic operating system for generalist robotics. `Modules` communicate via 
 
 ## Core Abstractions
 
-- **Module** — A unit of computation with typed input/output streams, RPCs, and skills
+- **Module** — A unit of computation with typed input/output streams, RPCs, and skills. **Modules are singletons** — each module class is instantiated exactly once per blueprint, and modules are only started once (no restart). This means a module instance can never race with another instance of itself, and you don't need to guard against duplicate startup or re-initialization.
 - **Blueprint** — An immutable, composable description of which modules to run and how to wire them
 - **Stream** — Typed pub/sub channels (`In[T]` / `Out[T]`) connecting modules
 - **Transport** — The wire protocol for streams (LCM multicast by default)
