@@ -91,3 +91,42 @@ Log files: `~/.local/state/dimos/logs/<run-id>/main.jsonl`
 - **JpegShmTransport**: JPEG-compressed images over shared memory.
 - **ROSTransport**: ROS topic bridge.
 - **DDSTransport**: DDS pub/sub — install with `uv sync --extra dds`.
+
+## The `.ignore.enhance` Overlay System
+
+This repo uses a **separate git repo** nested at `.ignore.enhance/` (remote: `jeff-hykin/dimos-enhanced`) to manage personal tooling, Claude config, and helper scripts without polluting the main dimos git history. Files in `.ignore.enhance/items/` are symlinked into the parent repo, and the symlinks are excluded from the main repo via `.git/info/exclude` (not `.gitignore`, so they're invisible to other contributors).
+
+### `epull` and `epush`
+
+These are shell commands (in `~/Commands/`) that sync the enhance overlay:
+
+- **`epull`** — Walks up from `$PWD` to find `.ignore.enhance/`, runs `git pull` on it, then re-symlinks everything from `items/` into the parent repo and updates `.git/info/exclude`. Run this after cloning a dimos repo or when someone else pushed changes to `dimos-enhanced`.
+- **`epush`** — Walks up from `$PWD` to find `.ignore.enhance/`, runs `git add -A && git commit -m "sync" && git pull --rebase && git push` on the enhance repo. Run this after editing any file inside `.ignore.enhance/items/` (including this file).
+
+**Typical workflow:**
+```bash
+# After editing CLAUDE.local.md, bin scripts, or .claude/ rules:
+epush          # commits + pushes the enhance repo
+
+# On a different machine or after someone else pushed:
+epull          # pulls latest + re-symlinks everything
+```
+
+### Adding Hidden `bin/` Commands
+
+To add a new script that appears in the repo's `bin/` directory without being tracked by the main repo's git:
+
+1. Create the script in `.ignore.enhance/items/bin/your_script`
+2. Make it executable: `chmod +x .ignore.enhance/items/bin/your_script`
+3. Run `epull` — this symlinks it into `bin/your_script` and adds `bin/your_script` to `.git/info/exclude`
+4. Run `epush` — this commits the new script to the enhance repo
+
+The symlink chain: `bin/your_script → .ignore.enhance/items/bin/your_script`
+
+Existing enhance-managed bin scripts include: `ci-check`, `ci-fast`, `ci-slow`, `cld`, `cldr`, `gen-blue`, `get_pos`, `pr-check`, `pr-diff`, `pr-name-check`, `send_clicked_point`, `send_cmd_vel`, `smart-nav-clean`, `smart-nav-status`.
+
+### Other Enhance-Managed Paths
+
+- **`CLAUDE.local.md`** (this file) — symlinked from repo root
+- **`.claude/`** — entire directory symlinked (commands, rules, skills)
+- **`_help/`** — helper data files (DAGs, caches, flake configs)
