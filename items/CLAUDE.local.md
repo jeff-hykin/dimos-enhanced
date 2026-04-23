@@ -1,5 +1,9 @@
 # DimOS Project Context
 
+- don't use short var names like `mod`, use a name like `module` instead
+- always make sure to handle the `unsub` for each subscription
+- in tests don't use stuff like `with patch.object(MovementManager, "__init__", lambda self: None):` because paul called it a "a very bad Claude pattern."
+
 ## What is DimOS
 
 The agentic operating system for generalist robotics. `Modules` communicate via typed streams over LCM, ROS2, DDS, or other transports. `Blueprints` compose modules into runnable robot stacks. `Skills` give agents the ability to execute physical on-hardware functions like `grab()`, `follow_object()`, or `jump()`.
