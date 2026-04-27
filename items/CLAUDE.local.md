@@ -1,5 +1,6 @@
 # DimOS Project Context
 
+- make sure to use the `.venv` with uv whenever doing python stuff
 - don't use short var names like `mod`, use a name like `module` instead
 - always make sure to handle the `unsub` for each subscription
 - in tests don't use stuff like `with patch.object(MovementManager, "__init__", lambda self: None):` because paul called it a "a very bad Claude pattern."
