@@ -3,6 +3,7 @@
 - don't use short var names like `mod`, use a name like `module` instead
 - always make sure to handle the `unsub` for each subscription
 - in tests don't use stuff like `with patch.object(MovementManager, "__init__", lambda self: None):` because paul called it a "a very bad Claude pattern."
+- if an import can be at the top it almost always should be
 
 ## What is DimOS
 
