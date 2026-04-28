@@ -13,6 +13,7 @@ git diff $(git merge-base origin/dev HEAD)..HEAD
 
 ## Step 2: Within those files, check the following
 
+- self.<word>._transport, we should basically never use _transport, that usually indicates that a start method forgot to have a `@rpc` decorator
 - Use grep to find every `def start` and check all subscribe calls within the body. Every `start` should:
     - have an `@rpc` decorator
     - begin with `super().start()`
@@ -20,7 +21,8 @@ git diff $(git merge-base origin/dev HEAD)..HEAD
       `self.register_disposable(Disposable(self.agent.subscribe(self._on_agent_message)))`
 - Use grep to find any indented (non-top-level) import statements. If they can be moved to the top of the file without a performance penalty (e.g. `from typing import Any`), move them.
 - Use grep to find every `# type: ignore` (and similar typing-ignore comments). Confirm each one is still actually needed; remove the ones that aren't.
-- Use LSP tools to check for any dead code in those changes.
+- Use LSP tools to check for any dead code in those changes
+- if there are magic numbers like `70` or `2.5` or `30` make sure they are in a describptive variable
 - Run `tree` on the `docs/` dir and see if there are any docs that need updating based on changes made to the code.
 - Read all the docstrings and comments in the changed files. Remove any that are junk/noise. Example of noise to delete:
   ```python
