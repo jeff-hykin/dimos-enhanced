@@ -13,7 +13,7 @@ no_cuda_flag=""
 if ! command -v nvidia-smi &>/dev/null || ! nvidia-smi &>/dev/null; then
     no_cuda_flag="--no-extra cuda"
 fi
-uv sync --frozen --all-extras --no-extra dds $no_cuda_flag
+uv sync --frozen --all-extras --no-extra dds --no-extra unitree-dds $no_cuda_flag
 
 echo "Running pre-commit checks"
 time pre-commit run --all-files

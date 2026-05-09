@@ -27,7 +27,7 @@ if __name__ == "__main__":
             FastLio2.blueprint(
                 voxel_size=voxel_size,
                 map_voxel_size=voxel_size,
-                map_freq=-1,
+                map_freq=1,
                 host_ip="192.168.1.5",
                 lidar_ip="192.168.1.107",
             ),
