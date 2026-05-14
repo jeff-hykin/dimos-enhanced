@@ -7,8 +7,8 @@ Fix common style/correctness nits across the files that would be part of a PR re
 Get all the files that would be part of a PR review:
 
 ```bash
-git fetch origin dev --quiet
-git diff $(git merge-base origin/dev HEAD)..HEAD
+git fetch origin main --quiet
+git diff $(git merge-base origin/main HEAD)..HEAD
 ```
 
 ## Step 2: Within those files, check the following
