@@ -18,7 +18,7 @@ from dimos.core.blueprints import autoconnect
 from dimos.mapping.costmapper import cost_mapper
 from dimos.mapping.voxels import voxel_mapper
 from dimos.navigation.frontier_exploration import wavefront_frontier_explorer
-from dimos.navigation.replanning_a_star.module import replanning_a_star_planner
+from dimos.navigation.modules.replanning_a_star.module import replanning_a_star_planner
 from dimos.robot.unitree.go2.blueprints.basic.unitree_go2_basic import unitree_go2_basic
 from dimos.utils.logging_config import setup_logger
 from dimos.core import Module, In, Out, rpc
