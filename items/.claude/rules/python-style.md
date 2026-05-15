@@ -4,6 +4,7 @@ globs: ["**/*.py"]
 
 # Python Style Rules
 
+- DO NOT ADD LONG OR UNCESSARY COMMENTS
 - Imports at top of file. No inline imports unless there is a circular dependency.
 - Use `requests` for HTTP (not `urllib`). Use `Any` (not `object`) for JSON values.
 - Type annotations required on all functions. Mypy strict mode.

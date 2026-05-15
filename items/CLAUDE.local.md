@@ -1,5 +1,6 @@
 # DimOS Project Context
 
+- DO NOT PUT LONG OR UNCESSARY COMMENTS
 - make sure to use the `.venv` with uv whenever doing python stuff
 - don't add verbose/noisey comments everywhere
 - don't use short var names like `mod`, use a name like `module` instead
