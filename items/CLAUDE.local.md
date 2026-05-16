@@ -7,6 +7,69 @@
 - every subscription needs an unsub handler `self.nav_cmd_vel.subscribe`
 - in tests don't use stuff like `with patch.object(MovementManager, "__init__", lambda self: None):` because paul called it a "a very bad Claude pattern."
 - if an import can be at the top it almost always should be
+- prefer async over threading inside modules (recent direction). Each `Module` already runs its own asyncio loop on a background thread (`self._loop`); use it instead of spinning up `threading.Thread`/`Lock`/`Queue`.
+
+## Async in modules
+
+Every `Module` instance has a private asyncio loop (`self._loop`) that's started by `Module.start()` and torn down by `Module.stop()`. Lean on it.
+
+### `async def main` — setup/teardown around a single yield
+Replace background threads with an async generator. Code before `yield` runs as part of `start()`; code after runs during `stop()`. Tasks you `create_task()` here get cancelled automatically on stop.
+```python
+class MyModule(Module):
+    async def main(self) -> AsyncIterator[None]:
+        # setup — runs inside start()
+        self._task = asyncio.create_task(self._poll_sensor())
+        yield
+        # teardown — runs inside stop()
+        self._task.cancel()
+```
+Rules: must be an async generator with **exactly one yield**. Two yields logs an error; zero yields raises. Setup errors propagate from `start()`; teardown errors are logged, not raised.
+
+### `async def handle_<input>` — per-input handlers
+For any declared `x: In[T]`, defining `async def handle_x(self, value: T)` auto-subscribes it on `self._loop` with LATEST coalescing (slow handler → intermediate messages dropped, only the newest unprocessed is delivered). No manual `.subscribe(...)` / unsub bookkeeping.
+```python
+class MyModule(Module):
+    cmd_vel: In[Twist]
+    out: Out[Twist]
+
+    async def handle_cmd_vel(self, value: Twist) -> None:
+        await asyncio.sleep(0)  # any await is fine
+        self.out.publish(value)
+```
+Use a manual `self.cmd_vel.subscribe(...)` only if you genuinely need a sync handler.
+
+### `@rpc async def` — async RPCs
+RPC methods can be `async def`. Sync callers see a normal sync call; async callers `await` it. The `@rpc` wrapper handles dispatch.
+```python
+class Worker(Module):
+    @rpc
+    async def do_work(self, x: int) -> int:
+        await asyncio.sleep(0.1)
+        return x * 2
+```
+
+### Cross-module async via Spec
+A consumer's Spec can declare a method as `async def` even if the provider's RPC is sync — the proxy (`AsyncSpecProxy`) runs the sync call in an executor so your loop stays unblocked. Likewise a sync Spec works against an async provider.
+```python
+class WorkerSpec(Spec, Protocol):
+    async def do_work(self, x: int) -> int: ...   # await from async code
+
+class Caller(Module):
+    _worker: WorkerSpec
+    in_value: In[int]
+    out_value: Out[int]
+
+    async def handle_in_value(self, x: int) -> None:
+        result = await self._worker.do_work(x)
+        self.out_value.publish(result)
+```
+
+### Escape hatch: `process_observable` / `submit_to_loop`
+If you need to subscribe an async callback to an arbitrary `Observable` (not an `In` port), use `self.process_observable(obs, async_cb)` — it gives you the same LATEST-coalesced dispatcher and registers the disposable for stop-time cleanup. To fire-and-forget a coroutine onto the module's loop from a sync context, `self.submit_to_loop(coro)` returns a `Future` (errors are auto-logged).
+
+### When threading is still ok
+Blocking C extensions that don't release the GIL, or third-party libs that demand their own thread (e.g. some LCM/ROS spin loops). Wrap them with `asyncio.to_thread` / `loop.run_in_executor` instead of building a parallel threading world inside the module.
 
 
 ## What is DimOS
